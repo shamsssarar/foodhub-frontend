@@ -30,6 +30,9 @@ export default function Navbar() {
           >
             Restaurants
           </Link>
+          <Link href="/orders" className="hover:text-primary transition-colors">
+            My Orders
+          </Link>
         </nav>
 
         {/* 3. Actions (Cart & Login) */}
