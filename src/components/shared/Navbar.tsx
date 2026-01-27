@@ -1,8 +1,13 @@
+"use client";
+
 import Link from "next/link";
 import { Button } from "../ui/button";
 import { ShoppingCart } from "lucide-react"; // Icons come free with Shadcn!
+import { useCart } from "@/lib/CartContext";
+import CartDrawer from "./CartDrawer";
 
 export default function Navbar() {
+  const { cartCount } = useCart();
   return (
     <header className="border-b border-border bg-background sticky top-0 z-50">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
@@ -19,20 +24,18 @@ export default function Navbar() {
           <Link href="/meals" className="hover:text-primary transition-colors">
             Menu
           </Link>
-          <Link href="/providers" className="hover:text-primary transition-colors">
+          <Link
+            href="/providers"
+            className="hover:text-primary transition-colors"
+          >
             Restaurants
           </Link>
         </nav>
 
         {/* 3. Actions (Cart & Login) */}
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" className="relative">
-            <ShoppingCart className="h-5 w-5" />
-            <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] font-bold text-white flex items-center justify-center">
-              0
-            </span>
-          </Button>
-          
+          <CartDrawer />
+
           <Link href="/login">
             <Button>Login</Button>
           </Link>
