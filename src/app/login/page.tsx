@@ -54,8 +54,9 @@ export default function LoginPage() {
 
       // Success! Save token and redirect
       localStorage.setItem("accessToken", result.data.accessToken);
-      if (result.data.user?.name) {
+      if (result.data.user?.name && result.data.user?.role) {
         localStorage.setItem("userName", result.data.user.name);
+        localStorage.setItem("userRole", result.data.user.role);
       }
       alert("Login Successful! 🔓"); // Temporary alert
       router.push("/"); // Go back home

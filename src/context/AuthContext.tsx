@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
 
 // 1. Initialize the context first (This removes the "cannot find name" error)
 const AuthDataContext = createContext<any>(null);
@@ -13,9 +19,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // These match your current logic for reading from storage
     const token = localStorage.getItem("accessToken");
     const savedUser = localStorage.getItem("userName");
+    const savedRole = localStorage.getItem("userRole");
 
     if (token && savedUser) {
-      setUser({ name: savedUser });
+      setUser({ name: savedUser, role: savedRole });
     }
     setIsLoading(false);
   }, []);
@@ -24,6 +31,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("userName");
     setUser(null);
+    localStorage.removeItem("userRole")
     window.location.href = "/login";
   };
 

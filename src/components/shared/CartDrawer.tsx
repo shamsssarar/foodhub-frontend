@@ -20,7 +20,7 @@ export default function CartDrawer() {
 
   const handleCheckout = async () => {
     const token = localStorage.getItem("accessToken");
-    
+
     // 1. Check Login
     if (!token) {
       alert("Please login to place an order! 🔒");
@@ -33,10 +33,10 @@ export default function CartDrawer() {
     try {
       // 2. Format data for Backend
       const orderData = {
-        items: items.map(item => ({
+        items: items.map((item) => ({
           mealId: item.id,
-          quantity: item.quantity
-        }))
+          quantity: item.quantity,
+        })),
       };
 
       // 3. Send Request to Your Backend
@@ -44,9 +44,10 @@ export default function CartDrawer() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": token // Send the token!
+          Authorization: token,
         },
-        body: JSON.stringify(orderData)
+        credentials: "include",
+        body: JSON.stringify(orderData),
       });
 
       const data = await res.json();
@@ -55,6 +56,7 @@ export default function CartDrawer() {
         alert("Order Placed Successfully! 🎉");
         clearCart(); // Empty the cart
       } else {
+        console.log(data);
         alert("Failed: " + data.message);
       }
     } catch (err) {
@@ -80,9 +82,11 @@ export default function CartDrawer() {
       {/* THE DRAWER CONTENT (Hidden until clicked) */}
       <SheetContent>
         <SheetHeader>
-          <SheetTitle className="text-2xl font-bold text-primary">Your Cart</SheetTitle>
+          <SheetTitle className="text-2xl font-bold text-primary">
+            Your Cart
+          </SheetTitle>
         </SheetHeader>
-        
+
         <div className="flex flex-col gap-6 mt-8 h-[70vh] overflow-y-auto">
           {items.length === 0 ? (
             <div className="text-center text-muted-foreground flex flex-col items-center gap-4 mt-10">
@@ -91,21 +95,27 @@ export default function CartDrawer() {
             </div>
           ) : (
             items.map((item) => (
-              <div key={item.id} className="flex justify-between items-center border-b border-dashed pb-4">
+              <div
+                key={item.id}
+                className="flex justify-between items-center border-b border-dashed pb-4"
+              >
                 <div className="flex gap-3">
-                   {/* Item Details */}
-                   <div>
-                     <p className="font-bold text-sm">{item.name}</p>
-                     <p className="text-xs text-muted-foreground">
-                       {item.quantity} x <span className="text-primary font-bold">${item.price}</span>
-                     </p>
-                   </div>
+                  {/* Item Details */}
+                  <div>
+                    <p className="font-bold text-sm">{item.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {item.quantity} x{" "}
+                      <span className="text-primary font-bold">
+                        ${item.price}
+                      </span>
+                    </p>
+                  </div>
                 </div>
-                
+
                 {/* Remove Button */}
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  variant="ghost"
+                  size="icon"
                   className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 w-8"
                   onClick={() => removeItem(item.id)}
                 >
@@ -123,8 +133,8 @@ export default function CartDrawer() {
               <span>Total:</span>
               <span className="text-primary">${totalPrice.toFixed(2)}</span>
             </div>
-            <Button 
-              className="w-full font-bold text-lg py-6" 
+            <Button
+              className="w-full font-bold text-lg py-6"
               onClick={handleCheckout}
               disabled={loading}
             >
