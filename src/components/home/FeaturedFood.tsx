@@ -28,7 +28,7 @@ const featuredMeals = [
   {
     id: "feat-3",
     name: "Spicy Chicken Wings",
-    category: "Asian", // Changed to match your Category logic (was "Chicken")
+    category: "Chicken", // Changed to match your Category logic (was "Chicken Wings")
     price: 8.50,
     rating: 4.7,
     image: "https://images.unsplash.com/photo-1567620832903-9fc6debc209f?q=80&w=1000&auto=format&fit=crop"
@@ -36,7 +36,7 @@ const featuredMeals = [
   {
     id: "feat-4",
     name: "Fresh Sushi Platter",
-    category: "Asian", // Changed to match your Category logic (was "Sushi")
+    category: "Sushi", // Changed to match your Category logic (was "Sushi")
     price: 18.99,
     rating: 4.9,
     image: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?q=80&w=1000&auto=format&fit=crop"

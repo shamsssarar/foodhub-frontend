@@ -41,7 +41,7 @@ function MenuContent() {
       setSelectedCategory(urlCategory);
     }
     if (urlSearch) {
-      setSearchTerm(urlSearch); 
+      setSearchTerm(urlSearch);
     }
   }, [urlCategory, urlSearch]);
 

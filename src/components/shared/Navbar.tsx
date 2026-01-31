@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
+import { useCart } from "@/lib/CartContext";
 
 import {
   DropdownMenu,
@@ -63,7 +64,9 @@ export default function Navbar() {
   const { isLoading } = useAuth();
   const pathname = usePathname();
   const [userName, setUserName] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
+  const { clearCart } = useCart();
 
   // --- Logic for Colors ---
   const isHomePage = pathname === "/";
@@ -72,7 +75,10 @@ export default function Navbar() {
   useEffect(() => {
     const storedName = localStorage.getItem("userName");
     const token = localStorage.getItem("accessToken");
-    if (token && storedName) setUserName(storedName);
+    const storedRole = localStorage.getItem("userRole");
+    if (token && storedName && storedRole) {
+      (setUserName(storedName), setUserRole(storedRole));
+    }
   }, []);
 
   useEffect(() => {
@@ -86,15 +92,60 @@ export default function Navbar() {
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("userName");
+    localStorage.removeItem("userRole");
+    clearCart();
     window.location.href = "/login";
   };
+  const NavLinks = ({
+    className,
+    onClick,
+  }: {
+    className?: string;
+    onClick?: () => void;
+  }) => (
+    <>
+      <Link
+        href="/"
+        onClick={onClick}
+        className={`hover:text-primary transition-colors ${className}`}
+      >
+        Home
+      </Link>
+      <Link
+        href="/meals"
+        onClick={onClick}
+        className={`hover:text-primary transition-colors ${className}`}
+      >
+        Menu
+      </Link>
+
+      {userRole === "PROVIDER" ? (
+        <Link
+          href="/dashboard"
+          onClick={onClick}
+          className={`hover:text-primary transition-colors ${className}`}
+        >
+          Dashboard
+        </Link>
+      ) : (
+        <Link
+          href="/orders"
+          onClick={onClick}
+          className={`hover:text-primary transition-colors ${className}`}
+        >
+          My Orders
+        </Link>
+      )}
+    </>
+  );
 
   if (isLoading) return null;
 
   return (
     <header
       className={cn(
-        "fixed top-0 w-full z-50 transition-all duration-300 border-b",
+        "w-full z-50 transition-all duration-300 border-b",
+        isHomePage ? "fixed top-0" : "sticky top-0",
         isSolid
           ? "bg-white/95 backdrop-blur-md border-gray-200 shadow-sm py-0"
           : "bg-transparent border-transparent py-2",
@@ -145,7 +196,7 @@ export default function Navbar() {
         <nav
           className={cn(
             "hidden md:flex items-center gap-8 text-sm font-bold tracking-wide transition-colors",
-            "absolute left-1/2 top-1/2 -translate-x-[45%] -translate-y-1/2", 
+            "absolute left-1/2 top-1/2 -translate-x-[45%] -translate-y-1/2",
             isSolid ? "text-gray-800" : "text-white",
           )}
         >
@@ -176,12 +227,21 @@ export default function Navbar() {
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/orders">My Orders</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard">Dashboard</Link>
-                </DropdownMenuItem>
+                {userRole === "PROVIDER" ? (
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard">Dashboard</Link>
+                  </DropdownMenuItem>
+                ) : (
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link href="/orders">My Orders</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard">Dashboard</Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
+
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="text-red-600 cursor-pointer"
@@ -198,7 +258,9 @@ export default function Navbar() {
                   size="sm"
                   variant={isSolid ? "default" : "secondary"}
                   className={
-                    !isSolid ? "bg-white text-primary hover:bg-gray-100" : ""
+                    !isSolid
+                      ? "bg-transparent text-primary hover:bg-gray-100"
+                      : ""
                   }
                 >
                   Login

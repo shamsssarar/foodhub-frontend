@@ -9,6 +9,9 @@ import { useRouter } from "next/navigation";
 import Loading from "../loading";
 import { jwtDecode } from "jwt-decode";
 import { error } from "console";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { ChefHat, LogOut, UserPlus } from "lucide-react";
 
 interface OrderItem {
   id: string;
@@ -30,16 +33,23 @@ interface Order {
 
 export default function MyOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     const fetchOrders = async () => {
       const token = localStorage.getItem("accessToken");
-      if (!token) return;
-
+      const storedRole = localStorage.getItem("userRole");
+      if (!token) {
+        window.location.replace("/login");
+        return;
+      }
+      if (token) {
+        if (storedRole) setUserRole(storedRole);
+      }
       try {
-
         const decoded: any = jwtDecode(token);
 
         const userId = decoded.userId;
@@ -80,21 +90,116 @@ export default function MyOrdersPage() {
       <Navbar />
 
       <main className="container mx-auto px-4 py-10">
-        <h1 className="text-3xl font-bold mb-8">
-          My <span className="text-primary">Orders</span>
-        </h1>
-
+        {userRole === "PROVIDER" ? null : (
+          <h1 className="text-3xl font-bold mb-8">
+            My <span className="text-primary">Orders</span>
+          </h1>
+        )}
         {loading ? (
           <Loading />
+        ) : userRole === "PROVIDER" ? (
+          <>
+            <div className="flex flex-col items-center justify-center text-center py-20 bg-white rounded-2xl border border-dashed border-orange-200 shadow-sm max-w-2xl mx-auto px-6 animate-in fade-in zoom-in duration-500">
+              <div className="bg-orange-100 p-5 rounded-full mb-6 shadow-inner">
+                <ChefHat className="h-12 w-12 text-primary" />
+              </div>
+
+              <h3 className="text-3xl font-bold text-gray-900 mb-3">
+                Time to Eat, Chef? 👨‍🍳
+              </h3>
+
+              <p className="text-gray-500 max-w-lg mx-auto mb-8 text-lg leading-relaxed">
+                You are currently in{" "}
+                <span className="font-bold text-primary">Provider Mode</span>{" "}
+                managing your restaurant.
+                <br className="hidden sm:block" />
+                To explore the menu and order delicious food for yourself,
+                please switch to a <strong>Customer Account</strong>.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
+                {/* Button 1: Logout & Login */}
+                <Button
+                  size="lg"
+                  className="font-bold px-8 h-12 shadow-lg shadow-orange-100 hover:scale-105 transition-transform"
+                  onClick={() => setShowLogoutConfirm(true)}
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Login as Customer
+                </Button>
+
+                {/* Button 2: Register */}
+                <Link href="/register">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="font-bold px-8 h-12 border-2 border-primary text-primary hover:bg-orange-50 w-full sm:w-auto"
+                  >
+                    <UserPlus className="w-4 h-4 mr-2" />
+                    Join as New Foodie
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            {/* 2. THE CONFIRMATION POPUP (MODAL) */}
+            {showLogoutConfirm && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 transform scale-100 animate-in zoom-in-95 duration-200 border border-gray-100">
+                  {/* Icon & Title */}
+                  <div className="flex flex-col items-center text-center mb-6">
+                    <div className="bg-red-100 p-3 rounded-full mb-4">
+                      <LogOut className="h-8 w-8 text-red-600" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900">
+                      Switching Accounts?
+                    </h3>
+                    <p className="text-gray-500 mt-2">
+                      Are you sure you want to log out of your Provider account?
+                      You will need to sign in again to manage your restaurant.
+                    </p>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-3">
+                    <Button
+                      variant="outline"
+                      className="flex-1 font-bold border-gray-200"
+                      onClick={() => setShowLogoutConfirm(false)}
+                    >
+                      Cancel
+                    </Button>
+
+                    <Button
+                      className="flex-1 font-bold bg-red-600 hover:bg-red-700 text-white"
+                      onClick={() => {
+                        // 3. ACTUAL LOGOUT LOGIC HERE
+                        localStorage.removeItem("accessToken");
+                        localStorage.removeItem("userName");
+                        localStorage.removeItem("userRole");
+                        window.location.href = "/login";
+                      }}
+                    >
+                      Yes, Log me out
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
         ) : orders.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-xl border">
-            <h3 className="text-xl font-bold text-gray-400">
-              No orders found 📦
-            </h3>
-            <p className="text-muted-foreground mt-2">
-              Go to the menu and eat something!
-            </p>
-          </div>
+          <>
+            <div className="text-center py-20 bg-white rounded-xl border">
+              <p className="text-muted-foreground m-2">
+                Go to the menu and eat something!
+              </p>
+              <Link href="/meals">
+                <Button size="lg" className="font-bold px-8 ">
+                  Browse Menu
+                </Button>
+              </Link>
+            </div>
+          </>
         ) : (
           <div className="space-y-6">
             {orders.map((order) => (
