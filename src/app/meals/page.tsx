@@ -27,7 +27,8 @@ function MenuContent() {
 
   // 2. Get the URL params
   const searchParams = useSearchParams();
-  const urlCategory = searchParams.get("category"); // e.g. "Burger"
+  const urlCategory = searchParams.get("category");
+  const urlSearch = searchParams.get("search"); // e.g. "Burger"
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -39,7 +40,10 @@ function MenuContent() {
     if (urlCategory) {
       setSelectedCategory(urlCategory);
     }
-  }, [urlCategory]);
+    if (urlSearch) {
+      setSearchTerm(urlSearch); 
+    }
+  }, [urlCategory, urlSearch]);
 
   useEffect(() => {
     const fetchMeals = async () => {

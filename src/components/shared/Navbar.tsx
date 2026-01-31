@@ -2,8 +2,12 @@
 
 import Link from "next/link";
 import { Button } from "../ui/button";
-import { User, LogOut } from "lucide-react";
+import { User, LogOut, Menu } from "lucide-react";
 import CartDrawer from "./CartDrawer";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { cn } from "@/lib/utils";
+import { usePathname } from "next/navigation";
 
 import {
   DropdownMenu,
@@ -13,127 +17,194 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useEffect, useState } from "react";
-import { useAuth } from "@/context/AuthContext";
+
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+
+// --- NavLinks Component ---
+const NavLinks = ({
+  className,
+  onClick,
+}: {
+  className?: string;
+  onClick?: () => void;
+}) => (
+  <>
+    <Link
+      href="/"
+      onClick={onClick}
+      className={`hover:text-primary transition-colors ${className}`}
+    >
+      Home
+    </Link>
+    <Link
+      href="/meals"
+      onClick={onClick}
+      className={`hover:text-primary transition-colors ${className}`}
+    >
+      Menu
+    </Link>
+    <Link
+      href="/orders"
+      onClick={onClick}
+      className={`hover:text-primary transition-colors ${className}`}
+    >
+      My Orders
+    </Link>
+  </>
+);
 
 export default function Navbar() {
   const { isLoading } = useAuth();
-
+  const pathname = usePathname();
   const [userName, setUserName] = useState<string | null>(null);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  // --- Logic for Colors ---
+  const isHomePage = pathname === "/";
+  const isSolid = isScrolled || !isHomePage;
 
   useEffect(() => {
     const storedName = localStorage.getItem("userName");
     const token = localStorage.getItem("accessToken");
-
-    if (token && storedName) {
-      setUserName(storedName);
-    }
+    if (token && storedName) setUserName(storedName);
   }, []);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
-  const handleLogout = async () => {
-    try {
-      const response = await fetch("http://localhost:5000/api/logout", {
-        method: "POST",
-        credentials: "include",
-      });
-
-      if (response.ok) {
-        // 1. Clear local state/storage
-        localStorage.removeItem("accessToken");
-
-        // 2. Redirect to login
-        window.location.href = "/login";
-      }
-      localStorage.removeItem("userName");
-
-      // 2. Redirect and refresh
-      window.location.href = "/login"; // Full reload to clear all states
-    } catch (error) {
-      console.error("Logout failed", error);
-    }
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("userName");
+    window.location.href = "/login";
   };
 
-  if (isLoading) {
-    return (
-      <header className="border-b border-border bg-background sticky top-0 z-50">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link href="/" className="text-2xl font-bold text-primary">
-            Food<span className="text-foreground">Hub</span>
-          </Link>
-          <div className="h-10 w-24 animate-pulse bg-gray-100 rounded-md" />
-        </div>
-      </header>
-    );
-  }
-  return (
-    <header className="border-b border-border bg-background sticky top-0 z-50">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        {/* 1. Logo */}
-        <Link href="/" className="text-2xl font-bold text-primary">
-          Food<span className="text-foreground">Hub</span>
-        </Link>
+  if (isLoading) return null;
 
-        {/* 2. Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-6 text-sm font-medium mx-auto">
-          <Link href="/" className="hover:text-primary transition-colors">
-            Home
+  return (
+    <header
+      className={cn(
+        "fixed top-0 w-full z-50 transition-all duration-300 border-b",
+        isSolid
+          ? "bg-white/95 backdrop-blur-md border-gray-200 shadow-sm py-0"
+          : "bg-transparent border-transparent py-2",
+      )}
+    >
+      <div className="container mx-auto flex h-16 items-center justify-between px-4 relative">
+        {/* LEFT: Logo & Mobile Trigger */}
+        <div className="flex items-center gap-2">
+          {/* Mobile Menu */}
+          <div className="md:hidden">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={isSolid ? "text-black" : "text-white"}
+                >
+                  <Menu className="h-6 w-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-76">
+                <SheetHeader>
+                  <SheetTitle className="text-left text-2xl font-bold text-primary mb-4">
+                    Food<span className="text-foreground">Hub</span>
+                  </SheetTitle>
+                </SheetHeader>
+                <nav className="flex flex-col gap-4 text-lg font-medium mt-4">
+                  <NavLinks className="px-2 py-2 hover:bg-gray-100 rounded-md block text-black" />
+                </nav>
+              </SheetContent>
+            </Sheet>
+          </div>
+
+          <Link href="/" className="text-2xl font-bold text-primary">
+            Food
+            <span
+              className={cn(
+                "transition-colors",
+                isSolid ? "text-foreground" : "text-white",
+              )}
+            >
+              Hub
+            </span>
           </Link>
-          <Link href="/meals" className="hover:text-primary transition-colors">
-            Menu
-          </Link>
-          <Link href="/orders" className="hover:text-primary transition-colors">
-            My Orders
-          </Link>
+        </div>
+
+        {/* CENTER: Desktop Nav Links */}
+        <nav
+          className={cn(
+            "hidden md:flex items-center gap-8 text-sm font-bold tracking-wide transition-colors",
+            "absolute left-1/2 top-1/2 -translate-x-[45%] -translate-y-1/2", 
+            isSolid ? "text-gray-800" : "text-white",
+          )}
+        >
+          <NavLinks />
         </nav>
 
-        {/* 3. Actions (Cart & Login) */}
+        {/* RIGHT: User & Cart */}
         <div className="flex items-center gap-4">
-          <CartDrawer />
+          <div className={isSolid ? "text-black" : "text-white"}>
+            <CartDrawer />
+          </div>
 
           {userName ? (
-            <DropdownMenu>
+            <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <Button
-                  variant="outline"
-                  className="flex items-center gap-2 border-primary text-primary hover:bg-orange-50"
+                  variant={isSolid ? "outline" : "secondary"}
+                  className={cn(
+                    "flex items-center gap-2 h-9 px-3 lg:px-4",
+                    !isSolid &&
+                      "bg-white/20 text-white hover:bg-white/30 border-transparent",
+                  )}
                 >
                   <User className="h-4 w-4" />
-                  Hi, {userName}
+                  <span className="hidden lg:inline">Hi, {userName}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link href="/orders" className="cursor-pointer">
-                    My Orders
-                  </Link>
+                  <Link href="/orders">My Orders</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/dashboard" className="cursor-pointer">
-                    Dashboard
-                  </Link>
+                  <Link href="/dashboard">Dashboard</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  className="text-red-600 cursor-pointer focus:text-red-600"
+                  className="text-red-600 cursor-pointer"
                   onClick={handleLogout}
                 >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
+                  <LogOut className="mr-2 h-4 w-4" /> <span>Log out</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <>
+            <div className="flex items-center gap-2">
               <Link href="/login">
-                <Button>Login</Button>
+                <Button
+                  size="sm"
+                  variant={isSolid ? "default" : "secondary"}
+                  className={
+                    !isSolid ? "bg-white text-primary hover:bg-gray-100" : ""
+                  }
+                >
+                  Login
+                </Button>
               </Link>
-              <Link href="/register">
-                <Button className="cursor-pointer">Register</Button>
-              </Link>
-            </>
+            </div>
           )}
         </div>
       </div>
