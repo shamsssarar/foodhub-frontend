@@ -1,5 +1,6 @@
 "use client";
 
+import LoadingOverlay from "@/components/shared/LoadingOverlay";
 import {
   createContext,
   useContext,
@@ -24,20 +25,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (token && savedUser) {
       setUser({ name: savedUser, role: savedRole });
     }
-    setIsLoading(false);
+    setTimeout(() => setIsLoading(false), 800);
   }, []);
 
   const logout = () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("userName");
     setUser(null);
-    localStorage.removeItem("userRole")
+    localStorage.removeItem("userRole");
     window.location.href = "/login";
   };
 
   return (
     // 2. Use the variable we defined at the top
     <AuthDataContext.Provider value={{ user, setUser, isLoading, logout }}>
+      {isLoading && <LoadingOverlay />}
       {children}
     </AuthDataContext.Provider>
   );

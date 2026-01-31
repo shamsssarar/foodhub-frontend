@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/lib/CartContext";
+import Loading from "../loading";
 // Define the shape of a Meal (matches your Prisma model)
 interface Meal {
   id: string;
@@ -78,11 +79,7 @@ export default function MenuPage() {
         </div>
 
         {/* Loading State */}
-        {loading && (
-          <div className="text-center py-20 text-muted-foreground">
-            Loading delicious food...
-          </div>
-        )}
+        {loading && <Loading />}
 
         {/* Empty State */}
         {!loading && filteredMeals.length === 0 && (

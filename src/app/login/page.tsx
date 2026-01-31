@@ -9,6 +9,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 // 1. Define the Validation Schema (Must match backend!)
 const loginSchema = z.object({
@@ -22,7 +23,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-
+  const { setUser } = useAuth();
   // 2. Setup Form
   const {
     register,
@@ -53,13 +54,19 @@ export default function LoginPage() {
       }
 
       // Success! Save token and redirect
-      localStorage.setItem("accessToken", result.data.accessToken);
-      if (result.data.user?.name && result.data.user?.role) {
+
+      if (result.success) {
+        localStorage.setItem("accessToken", result.data.accessToken);
         localStorage.setItem("userName", result.data.user.name);
         localStorage.setItem("userRole", result.data.user.role);
+        setUser({
+          name: result.data.user.name,
+          role: result.data.user.role,
+        });
       }
-      alert("Login Successful! 🔓"); // Temporary alert
-      router.push("/"); // Go back home
+      alert("Login Successful! 🔓");
+
+      router.push("/dashboard");
     } catch (err: any) {
       setError(err.message);
     } finally {

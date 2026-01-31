@@ -6,17 +6,20 @@ import { redirect, useRouter } from "next/navigation";
 import AdminDashboard from "./(admin)/AdminDashboard";
 import ProviderDashboard from "./(provider)/ProviderDashboard";
 import UserDashboard from "./(user)/UserDashboard";
+import { useEffect } from "react";
 
 export default function DashboardProxy() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
 
-  if (isLoading) return <div className="p-10">Checking permissions...</div>;
+useEffect(() => {
+    if (!isLoading && !user) {
+      router.push("/login");
+    }
+  }, [isLoading, user])
 
-  if (isLoading && !user) {
-    router.push("/login");
-    return null;
-  }
+  if (isLoading) return null;
+  if (!user) return null;
 
   switch (user.role?.toUpperCase()) {
     case "ADMIN":

@@ -75,18 +75,12 @@ export default function Navbar() {
         </Link>
 
         {/* 2. Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
+        <nav className="hidden md:flex items-center gap-6 text-sm font-medium mx-auto">
           <Link href="/" className="hover:text-primary transition-colors">
             Home
           </Link>
           <Link href="/meals" className="hover:text-primary transition-colors">
             Menu
-          </Link>
-          <Link
-            href="/providers"
-            className="hover:text-primary transition-colors"
-          >
-            Restaurants
           </Link>
           <Link href="/orders" className="hover:text-primary transition-colors">
             My Orders
