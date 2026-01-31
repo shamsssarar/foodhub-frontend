@@ -1,12 +1,16 @@
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Star } from "lucide-react";
-import Image from "next/image";
+"use client";
 
-// Dummy Data (Later we fetch from API)
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Star, ShoppingCart, ArrowRight } from "lucide-react";
+import Link from "next/link";
+import { useCart } from "@/lib/CartContext";
+import { useRouter } from "next/navigation"; // <--- 1. Import Router
+
+// Dummy Data
 const featuredMeals = [
   {
-    id: 1,
+    id: "feat-1",
     name: "Cheesy Pepperoni Pizza",
     category: "Pizza",
     price: 12.99,
@@ -14,7 +18,7 @@ const featuredMeals = [
     image: "https://images.unsplash.com/photo-1628840042765-356cda07504e?q=80&w=1000&auto=format&fit=crop"
   },
   {
-    id: 2,
+    id: "feat-2",
     name: "Double Beef Burger",
     category: "Burger",
     price: 9.99,
@@ -22,17 +26,17 @@ const featuredMeals = [
     image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=1000&auto=format&fit=crop"
   },
   {
-    id: 3,
+    id: "feat-3",
     name: "Spicy Chicken Wings",
-    category: "Chicken",
+    category: "Asian", // Changed to match your Category logic (was "Chicken")
     price: 8.50,
     rating: 4.7,
     image: "https://images.unsplash.com/photo-1567620832903-9fc6debc209f?q=80&w=1000&auto=format&fit=crop"
   },
   {
-    id: 4,
+    id: "feat-4",
     name: "Fresh Sushi Platter",
-    category: "Sushi",
+    category: "Asian", // Changed to match your Category logic (was "Sushi")
     price: 18.99,
     rating: 4.9,
     image: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?q=80&w=1000&auto=format&fit=crop"
@@ -40,6 +44,26 @@ const featuredMeals = [
 ];
 
 export default function FeaturedFood() {
+  const { addItem } = useCart();
+  const router = useRouter(); // <--- 2. Initialize Router
+
+  const handleAddToCart = (meal: any) => {
+    // 1. Add to Cart
+    addItem({
+      id: meal.id,
+      name: meal.name,
+      price: meal.price,
+      quantity: 1,
+      imageUrl: meal.image
+    });
+
+    // 2. Feedback (Optional: remove alert if you want instant redirect)
+    // alert(`${meal.name} added! Redirecting to ${meal.category}s...`);
+
+    // 3. Redirect to the specific category page
+    router.push(`/meals?category=${meal.category}`);
+  };
+
   return (
     <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
@@ -48,19 +72,21 @@ export default function FeaturedFood() {
             <h2 className="text-3xl font-bold">Popular <span className="text-primary">Meals</span></h2>
             <p className="text-muted-foreground mt-2">The best rated dishes from our partners</p>
           </div>
-          <Button variant="outline" className="hidden md:flex">View All Menu</Button>
+          
+          <Link href="/meals" className="hidden md:block">
+             <Button variant="outline">View All Menu</Button>
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {featuredMeals.map((meal) => (
-            <Card key={meal.id} className="border-none shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden group">
+            <Card key={meal.id} className="border-none shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden group bg-white">
               <CardHeader className="p-0">
-                <div className="relative h-48 w-full">
-                   {/* In real Next.js, we use <Image />, but for external URLs we need config. using <img> for quick test */}
+                <div className="relative h-48 w-full overflow-hidden">
                   <img 
                     src={meal.image} 
                     alt={meal.name} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
                   <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-sm">
                     <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
@@ -69,11 +95,19 @@ export default function FeaturedFood() {
                 </div>
               </CardHeader>
               <CardContent className="p-4">
-                <div className="text-sm text-primary font-medium mb-1">{meal.category}</div>
-                <h3 className="font-bold text-lg leading-tight mb-2 truncate">{meal.name}</h3>
+                <div className="text-xs font-bold text-primary mb-1 uppercase tracking-wide">{meal.category}</div>
+                <h3 className="font-bold text-lg leading-tight mb-2 truncate" title={meal.name}>{meal.name}</h3>
+                
                 <div className="flex items-center justify-between mt-4">
-                  <span className="text-xl font-bold">${meal.price}</span>
-                  <Button size="sm" className="rounded-full">Add</Button>
+                  <span className="text-xl font-bold text-slate-800">${meal.price}</span>
+                  
+                  <Button 
+                    size="sm" 
+                    className="rounded-full shadow-lg shadow-orange-100 group-active:scale-95 transition-transform"
+                    onClick={() => handleAddToCart(meal)}
+                  >
+                    Add <ArrowRight className="w-3 h-3 ml-1" />
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -81,7 +115,9 @@ export default function FeaturedFood() {
         </div>
         
         <div className="mt-8 text-center md:hidden">
-            <Button variant="outline">View All Menu</Button>
+            <Link href="/meals">
+                <Button variant="outline" className="w-full">View All Menu</Button>
+            </Link>
         </div>
       </div>
     </section>

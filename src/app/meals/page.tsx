@@ -1,15 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Navbar from "@/components/shared/Navbar";
 import Footer from "@/components/shared/Footer";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
+import { Search, Utensils } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/lib/CartContext";
 import Loading from "../loading";
-// Define the shape of a Meal (matches your Prisma model)
+import { cn } from "@/lib/utils";
+import { useSearchParams } from "next/navigation"; // <--- 1. Import this
+
 interface Meal {
   id: string;
   name: string;
@@ -19,19 +21,31 @@ interface Meal {
   imageUrl: string | null;
 }
 
-export default function MenuPage() {
+function MenuContent() {
   const [meals, setMeals] = useState<Meal[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // 2. Get the URL params
+  const searchParams = useSearchParams();
+  const urlCategory = searchParams.get("category"); // e.g. "Burger"
+
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+
   const { addItem } = useCart();
 
-  // 1. Fetch Meals from Backend on Load
+  // 3. LISTEN to URL changes
+  useEffect(() => {
+    if (urlCategory) {
+      setSelectedCategory(urlCategory);
+    }
+  }, [urlCategory]);
+
   useEffect(() => {
     const fetchMeals = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/meals"); // Ensure this matches your backend route
+        const res = await fetch("http://localhost:5000/api/meals");
         const data = await res.json();
-
         if (data.success) {
           setMeals(data.data);
         }
@@ -45,18 +59,28 @@ export default function MenuPage() {
     fetchMeals();
   }, []);
 
-  // 2. Filter Meals based on Search
-  const filteredMeals = meals.filter((meal) =>
-    meal.name.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  const categories = [
+    "All",
+    ...Array.from(
+      new Set(meals.map((meal) => meal.category?.name).filter(Boolean)),
+    ),
+  ];
+
+  const filteredMeals = meals.filter((meal) => {
+    const matchesSearch = meal.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesCategory =
+      selectedCategory === "All" || meal.category?.name === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gray-50/50">
       <Navbar />
 
       <main className="flex-1 container mx-auto px-4 py-10">
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
           <div>
             <h1 className="text-3xl font-bold">
               Our <span className="text-primary">Menu</span>
@@ -66,66 +90,98 @@ export default function MenuPage() {
             </p>
           </div>
 
-          {/* Search Bar */}
           <div className="relative w-full md:w-80">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search food..."
-              className="pl-9"
+              className="pl-9 bg-white"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
         </div>
 
-        {/* Loading State */}
-        {loading && <Loading />}
-
-        {/* Empty State */}
-        {!loading && filteredMeals.length === 0 && (
-          <div className="text-center py-20 text-muted-foreground">
-            No meals found. Try searching for something else!
+        {/* CATEGORY TABS */}
+        {!loading && (
+          <div className="flex gap-3 overflow-x-auto pb-6 mb-4 scrollbar-hide">
+            {categories.map((cat) => (
+              <Button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                variant={selectedCategory === cat ? "default" : "outline"}
+                className={cn(
+                  "rounded-full px-6 transition-all",
+                  selectedCategory === cat
+                    ? "shadow-md scale-105"
+                    : "bg-white hover:bg-orange-50 border-gray-200",
+                )}
+              >
+                {cat === "All" && <Utensils className="w-4 h-4 mr-2" />}
+                {cat}
+              </Button>
+            ))}
           </div>
         )}
 
-        {/* Meals Grid */}
+        {loading && <Loading />}
+
+        {!loading && filteredMeals.length === 0 && (
+          <div className="text-center py-20 text-muted-foreground flex flex-col items-center">
+            <Search className="h-12 w-12 opacity-20 mb-4" />
+            <p className="text-lg font-medium">No meals found.</p>
+            <p className="text-sm">Try changing the category or search term.</p>
+            <Button
+              variant="link"
+              onClick={() => {
+                setSelectedCategory("All");
+                setSearchTerm("");
+              }}
+              className="mt-2 text-primary"
+            >
+              Clear Filters
+            </Button>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredMeals.map((meal) => (
             <Card
               key={meal.id}
-              className="overflow-hidden hover:shadow-lg transition-shadow duration-300"
+              className="overflow-hidden hover:shadow-lg transition-all duration-300 group border-none shadow-sm bg-white"
             >
-              <div className="h-48 bg-gray-200 relative">
+              <div className="h-48 bg-gray-100 relative overflow-hidden">
                 <img
                   src={
                     meal.imageUrl ||
                     "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&auto=format&fit=crop&q=60"
                   }
                   alt={meal.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
+                <div className="absolute top-3 left-3">
+                  <span className="text-[10px] font-bold text-white px-3 py-1 bg-black/50 backdrop-blur-md rounded-full">
+                    {meal.category?.name || "Food"}
+                  </span>
+                </div>
               </div>
 
               <CardHeader className="p-4 pb-2">
                 <div className="flex justify-between items-start">
-                  <div>
-                    <span className="text-xs font-bold text-primary px-2 py-1 bg-orange-100 rounded-full">
-                      {meal.category?.name || "Food"}
-                    </span>
-                    <h3 className="font-bold text-lg mt-2 leading-tight">
-                      {meal.name}
-                    </h3>
-                  </div>
-                  <span className="font-bold text-lg">${meal.price}</span>
+                  <h3 className="font-bold text-lg leading-tight text-slate-800">
+                    {meal.name}
+                  </h3>
+                  <span className="font-bold text-lg text-primary">
+                    ${meal.price}
+                  </span>
                 </div>
               </CardHeader>
 
               <CardContent className="p-4 pt-0">
-                <p className="text-muted-foreground text-sm line-clamp-2 mb-4">
+                <p className="text-muted-foreground text-sm line-clamp-2 mb-4 h-10">
                   {meal.description || "No description available."}
                 </p>
                 <Button
-                  className="w-full font-bold"
+                  className="w-full font-bold shadow-md shadow-orange-100 active:scale-95 transition-transform"
                   onClick={() => {
                     addItem({
                       id: meal.id,
@@ -134,7 +190,7 @@ export default function MenuPage() {
                       quantity: 1,
                       imageUrl: meal.imageUrl || "",
                     });
-                    alert(`${meal.name} added to cart! 🛒`); // Simple feedback
+                    alert(`${meal.name} added to cart! 🛒`);
                   }}
                 >
                   Add to Cart
@@ -147,5 +203,14 @@ export default function MenuPage() {
 
       <Footer />
     </div>
+  );
+}
+
+// Wrap in Suspense to handle search params safely
+export default function MenuPage() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <MenuContent />
+    </Suspense>
   );
 }
