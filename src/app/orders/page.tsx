@@ -11,7 +11,7 @@ import { jwtDecode } from "jwt-decode";
 import { error } from "console";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ChefHat, LogOut, UserPlus } from "lucide-react";
+import { ChefHat, LogOut, UserPlus, Clock, CheckCircle } from "lucide-react";
 
 interface OrderItem {
   id: string;
@@ -230,29 +230,57 @@ export default function MyOrdersPage() {
 
                 <CardContent className="pt-6">
                   <div className="space-y-4">
-                    {order.orderItems.map((item) => (
+                    {order.orderItems.map((item: any) => (
                       <div
                         key={item.id}
-                        className="flex justify-between items-center"
+                        className="flex justify-between items-center bg-white p-3 rounded-lg border border-gray-100"
                       >
                         <div className="flex items-center gap-4">
-                          <div className="h-12 w-12 bg-gray-100 rounded-md overflow-hidden">
-                            {/* Optional: Add Image tag here if you want */}
+                          {/* Item Image */}
+                          <div className="h-14 w-14 bg-gray-100 rounded-md overflow-hidden relative">
                             <img
                               src={item.meal?.imageUrl || "/placeholder.png"}
-                              className="object-cover h-full w-full opacity-80"
+                              alt={item.meal?.name}
+                              className="object-cover h-full w-full"
                             />
                           </div>
+
+                          {/* Item Name & Status */}
                           <div>
-                            <p className="font-bold">{item.meal?.name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              Qty: {item.quantity}
+                            <p className="font-bold text-gray-800">
+                              {item.meal?.name}
                             </p>
+
+                            {/* --- NEW STATUS BADGE FOR EACH ITEM --- */}
+                            <div className="mt-1">
+                              {item.status === "PENDING" && (
+                                <span className="inline-flex items-center text-xs font-medium text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full border border-orange-100">
+                                  <Clock className="w-3 h-3 mr-1" /> Pending
+                                </span>
+                              )}
+                              {item.status === "IN_PROGRESS" && (
+                                <span className="inline-flex items-center text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">
+                                  <ChefHat className="w-3 h-3 mr-1" /> Cooking
+                                </span>
+                              )}
+                              {item.status === "DELIVERED" && (
+                                <span className="inline-flex items-center text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100">
+                                  <CheckCircle className="w-3 h-3 mr-1" /> Ready
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
-                        <p className="font-medium">
-                          ${item.price * item.quantity}
-                        </p>
+
+                        {/* Price & Quantity */}
+                        <div className="text-right">
+                          <p className="text-xs text-muted-foreground">
+                            Qty: {item.quantity}
+                          </p>
+                          <p className="font-bold text-primary">
+                            ${(item.meal.price * item.quantity).toFixed(2)}
+                          </p>
+                        </div>
                       </div>
                     ))}
                   </div>

@@ -21,6 +21,7 @@ import Loading from "@/app/loading";
 interface OrderItem {
   id: string;
   quantity: number;
+  status: string;
   meal: {
     name: string;
     price: number;
@@ -195,103 +196,108 @@ export default function ProviderDashboard() {
               </p>
             </div>
           ) : (
-            orders.map((order) => (
-              <Card
-                key={order.orderId}
-                className="border-none shadow-sm overflow-hidden group hover:shadow-md transition-shadow"
-              >
-                <div className="flex flex-col md:flex-row items-stretch">
-                  {/* Left Side: Order ID */}
-                  <div className="bg-slate-50 p-6 flex flex-col justify-center border-r border-slate-100 min-w-50">
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                      Order ID
-                    </span>
-                    <span className="font-mono font-bold text-slate-700">
-                      #{order.orderId.slice(0, 8).toUpperCase()}
-                    </span>
-                  </div>
-
-                  {/* Right Side: Order Details */}
-                  <div className="flex-1 p-6 flex flex-col md:flex-row justify-between items-center gap-6">
-                    {/* Customer Info */}
-                    <div>
-                      <h4 className="font-bold text-slate-900">
-                        {order.customerName}
-                      </h4>
-                      <p className="text-sm text-slate-500">
-                        {new Date(order.createdAt).toLocaleDateString()}
-                      </p>
-
-                      <div className="mt-2 flex items-center gap-2">
-                        <Badge
-                          variant={
-                            order.status === "DELIVERED"
-                              ? "secondary"
-                              : "outline"
-                          }
-                          className="rounded-full"
-                        >
-                          {order.status}
-                        </Badge>
-                        <span className="text-xs text-slate-400">
-                          {order.items.length} items for you
-                        </span>
-                      </div>
-
-                      {/* NEW: List the specific items for this provider */}
-                      <div className="mt-3 text-sm text-gray-600 bg-gray-50 p-2 rounded">
-                        {order.items.map((item) => (
-                          <div key={item.id} className="flex gap-2">
-                            <span className="font-bold">{item.quantity}x</span>
-                            <span>{item.meal.name}</span>
-                          </div>
-                        ))}
-                      </div>
+            orders.map((order) => {
+              const currentStatus = order.items[0]?.status || "PENDING";
+              return (
+                <Card
+                  key={order.orderId}
+                  className="border-none shadow-sm overflow-hidden group hover:shadow-md transition-shadow"
+                >
+                  <div className="flex flex-col md:flex-row items-stretch">
+                    {/* Left Side: Order ID */}
+                    <div className="bg-slate-50 p-6 flex flex-col justify-center border-r border-slate-100 min-w-50">
+                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                        Order ID
+                      </span>
+                      <span className="font-mono font-bold text-slate-700">
+                        #{order.orderId.slice(0, 8).toUpperCase()}
+                      </span>
                     </div>
 
-                    {/* Price & Actions */}
-                    <div className="flex flex-col items-end gap-4">
-                      <div className="text-right">
-                        <p className="text-xs text-slate-400 uppercase font-bold">
-                          Your Revenue
+                    {/* Right Side: Order Details */}
+                    <div className="flex-1 p-6 flex flex-col md:flex-row justify-between items-center gap-6">
+                      {/* Customer Info */}
+                      <div>
+                        <h4 className="font-bold text-slate-900">
+                          {order.customerName}
+                        </h4>
+                        <p className="text-sm text-slate-500">
+                          {new Date(order.createdAt).toLocaleDateString()}
                         </p>
-                        <p className="text-xl font-black text-primary">
-                          ${order.totalRevenue.toFixed(2)}
-                        </p>
+
+                        <div className="mt-2 flex items-center gap-2">
+                          <Badge
+                            variant={
+                              currentStatus === "DELIVERED"
+                                ? "secondary"
+                                : "outline"
+                            }
+                            className="rounded-full"
+                          >
+                            {currentStatus}
+                          </Badge>
+                          <span className="text-xs text-slate-400">
+                            {order.items.length} items for you
+                          </span>
+                        </div>
+
+                        {/* NEW: List the specific items for this provider */}
+                        <div className="mt-3 text-sm text-gray-600 bg-gray-50 p-2 rounded">
+                          {order.items.map((item) => (
+                            <div key={item.id} className="flex gap-2">
+                              <span className="font-bold">
+                                {item.quantity}x
+                              </span>
+                              <span>{item.meal.name}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
 
-                      <div className="flex gap-2">
-                        {order.status === "PENDING" && (
-                          <Button
-                            onClick={() =>
-                              updateStatus(order.orderId, "IN_PROGRESS")
-                            }
-                            className="bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-100"
-                          >
-                            Accept
-                          </Button>
-                        )}
-                        {order.status === "IN_PROGRESS" && (
-                          <Button
-                            onClick={() =>
-                              updateStatus(order.orderId, "DELIVERED")
-                            }
-                            className="bg-green-600 hover:bg-green-700 shadow-md shadow-green-100"
-                          >
-                            <Truck className="w-4 h-4 mr-2" /> Dispatch
-                          </Button>
-                        )}
-                        {order.status === "DELIVERED" && (
-                          <div className="flex items-center text-green-600 font-bold bg-green-50 px-4 py-2 rounded-lg">
-                            <CheckCircle className="w-4 h-4 mr-2" /> Complete
-                          </div>
-                        )}
+                      {/* Price & Actions */}
+                      <div className="flex flex-col items-end gap-4">
+                        <div className="text-right">
+                          <p className="text-xs text-slate-400 uppercase font-bold">
+                            Your Revenue
+                          </p>
+                          <p className="text-xl font-black text-primary">
+                            ${order.totalRevenue.toFixed(2)}
+                          </p>
+                        </div>
+
+                        <div className="flex gap-2">
+                          {currentStatus === "PENDING" && (
+                            <Button
+                              onClick={() =>
+                                updateStatus(order.orderId, "IN_PROGRESS")
+                              }
+                              className="bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-100"
+                            >
+                              Accept
+                            </Button>
+                          )}
+                          {currentStatus === "IN_PROGRESS" && (
+                            <Button
+                              onClick={() =>
+                                updateStatus(order.orderId, "DELIVERED")
+                              }
+                              className="bg-green-600 hover:bg-green-700 shadow-md shadow-green-100"
+                            >
+                              <Truck className="w-4 h-4 mr-2" /> Dispatch
+                            </Button>
+                          )}
+                          {currentStatus === "DELIVERED" && (
+                            <div className="flex items-center text-green-600 font-bold bg-green-50 px-4 py-2 rounded-lg">
+                              <CheckCircle className="w-4 h-4 mr-2" /> Complete
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </Card>
-            ))
+                </Card>
+              );
+            })
           )}
         </div>
       </main>
