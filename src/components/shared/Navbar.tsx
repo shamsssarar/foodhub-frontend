@@ -227,20 +227,13 @@ export default function Navbar() {
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {userRole === "PROVIDER" ? (
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard">Dashboard</Link>
-                  </DropdownMenuItem>
-                ) : (
-                  <>
-                    <DropdownMenuItem asChild>
-                      <Link href="/orders">My Orders</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/dashboard">Dashboard</Link>
-                    </DropdownMenuItem>
-                  </>
-                )}
+
+                <DropdownMenuItem asChild>
+                  <Link href="/orders">My Orders</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard">Dashboard</Link>
+                </DropdownMenuItem>
 
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
