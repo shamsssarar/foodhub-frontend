@@ -18,15 +18,26 @@ import * as z from "zod";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-// 1. Validation Schema
+// 1. Validation Schema - Added 'cuisine'
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-  role: z.enum(["CUSTOMER", "PROVIDER"]), // Limit choices to these two
+  role: z.enum(["CUSTOMER", "PROVIDER"]),
+  cuisine: z.string().optional(), // Optional initially, validated manually below if Provider
 });
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
+
+// List of Food Categories your app supports
+const CUISINE_TYPES = [
+  "Burger",
+  "Pizza",
+  "Asian",
+  "Dessert",
+  "Mexican",
+  "Drinks",
+];
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -36,27 +47,38 @@ export default function RegisterPage() {
   const {
     register,
     handleSubmit,
-    setValue, // Needed for the Select component
+    setValue,
+    watch, // <--- Added watch to track role changes
     formState: { errors },
   } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      role: "CUSTOMER", // Default role
+      role: "CUSTOMER",
     },
   });
+
+  // Watch the role field in real-time
+  const selectedRole = watch("role");
 
   const onSubmit = async (data: RegisterFormValues) => {
     setIsLoading(true);
     setError("");
 
+    // Custom Validation: If Provider, Cuisine is required
+    if (data.role === "PROVIDER" && !data.cuisine) {
+      setError("Please select a Cuisine Type for your restaurant");
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_URL}/api/register`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/register`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data),
-        },
+        }
       );
 
       const result = await response.json();
@@ -65,13 +87,13 @@ export default function RegisterPage() {
         throw new Error(result.message || "Registration failed");
       }
 
-      toast.success("Account Created! Please login", {
-        description: "You have successfully created account",
+      toast.success("Account Created! 👨‍🍳", {
+        description: "Please login to access your dashboard.",
         duration: 3000,
       });
-      router.push("/login"); // Send them to login page
+      router.push("/login"); 
     } catch (err: any) {
-      toast.error("register Failed", {
+      toast.error("Registration Failed", {
         description: err.message || "Something went wrong.",
       });
     } finally {
@@ -133,13 +155,14 @@ export default function RegisterPage() {
             )}
           </div>
 
-          {/* Role Selector (Manual Integration with Shadcn Select) */}
+          {/* Role Selector */}
           <div className="space-y-2">
             <Label>I want to...</Label>
             <Select
               onValueChange={(val) =>
                 setValue("role", val as "CUSTOMER" | "PROVIDER")
               }
+              defaultValue="CUSTOMER"
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select Account Type" />
@@ -151,6 +174,28 @@ export default function RegisterPage() {
             </Select>
             <input type="hidden" {...register("role")} />
           </div>
+
+          {/* --- CONDITIONAL CUISINE SELECTOR --- */}
+          {/* Only shows if user selected PROVIDER */}
+          {selectedRole === "PROVIDER" && (
+            <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+              <Label className="text-orange-600">What do you cook?</Label>
+              <Select
+                onValueChange={(val) => setValue("cuisine", val)}
+              >
+                <SelectTrigger className="border-orange-200 bg-orange-50/50">
+                  <SelectValue placeholder="Select Cuisine Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CUISINE_TYPES.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <Button
             type="submit"
