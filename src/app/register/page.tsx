@@ -33,10 +33,11 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 const CUISINE_TYPES = [
   "Burger",
   "Pizza",
-  "Asian",
+  "Pasta",
   "Dessert",
-  "Mexican",
-  "Drinks",
+  "Chicken",
+  "Beverages",
+  "Sushi",
 ];
 
 export default function RegisterPage() {
@@ -78,7 +79,7 @@ export default function RegisterPage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data),
-        }
+        },
       );
 
       const result = await response.json();
@@ -91,7 +92,7 @@ export default function RegisterPage() {
         description: "Please login to access your dashboard.",
         duration: 3000,
       });
-      router.push("/login"); 
+      router.push("/login");
     } catch (err: any) {
       toast.error("Registration Failed", {
         description: err.message || "Something went wrong.",
@@ -180,9 +181,7 @@ export default function RegisterPage() {
           {selectedRole === "PROVIDER" && (
             <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
               <Label className="text-orange-600">What do you cook?</Label>
-              <Select
-                onValueChange={(val) => setValue("cuisine", val)}
-              >
+              <Select onValueChange={(val) => setValue("cuisine", val)}>
                 <SelectTrigger className="border-orange-200 bg-orange-50/50">
                   <SelectValue placeholder="Select Cuisine Category" />
                 </SelectTrigger>

@@ -11,6 +11,7 @@ import * as z from "zod";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
+import { ArrowLeft } from "lucide-react";
 
 // 1. Define the Validation Schema (Must match backend!)
 const loginSchema = z.object({
@@ -82,6 +83,17 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-orange-50 px-4">
+
+      {/* --- NEW: BACK TO HOME BUTTON --- */}
+      <div className="absolute top-6 left-6 md:top-10 md:left-10">
+        <Link href="/">
+          <Button variant="ghost" className="hover:bg-orange-100 text-orange-800 gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Home
+          </Button>
+        </Link>
+      </div>
+      {/* -------------------------------- */}
       <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl border border-orange-100">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-primary mb-2">Welcome Back</h1>
