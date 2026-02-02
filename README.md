@@ -62,7 +62,7 @@ Follow these steps to set up the project locally.
 
 1.  **Clone the repository**
     ```bash
-    git clone [https://github.com/your-username/foodhub-frontend.git](https://github.com/shamsssarar/foodhub-frontend.git)
+    git clone [https://github.com/your-username/foodhub-frontend.git](https://github.com/your-name/foodhub-frontend.git)
     cd foodhub-frontend
     ```
 
