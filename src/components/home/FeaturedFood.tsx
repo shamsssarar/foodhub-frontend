@@ -56,10 +56,6 @@ export default function FeaturedFood() {
       quantity: 1,
       imageUrl: meal.image
     });
-
-    // 2. Feedback (Optional: remove alert if you want instant redirect)
-    // alert(`${meal.name} added! Redirecting to ${meal.category}s...`);
-
     // 3. Redirect to the specific category page
     router.push(`/meals?category=${meal.category}`);
   };

@@ -16,6 +16,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 // 1. Validation Schema
 const registerSchema = z.object({
@@ -49,11 +50,14 @@ export default function RegisterPage() {
     setError("");
 
     try {
-      const response = await fetch("http://localhost:5000/api/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_URL}/api/register`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        },
+      );
 
       const result = await response.json();
 
@@ -61,10 +65,15 @@ export default function RegisterPage() {
         throw new Error(result.message || "Registration failed");
       }
 
-      alert("Account Created! Please Login. 🎉");
+      toast.success("Account Created! Please login", {
+        description: "You have successfully created account",
+        duration: 3000,
+      });
       router.push("/login"); // Send them to login page
     } catch (err: any) {
-      setError(err.message);
+      toast.error("register Failed", {
+        description: err.message || "Something went wrong.",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -74,7 +83,9 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center bg-orange-50 px-4">
       <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl border border-orange-100">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-primary mb-2">Create Account</h1>
+          <h1 className="text-3xl font-bold text-primary mb-2">
+            Create Account
+          </h1>
           <p className="text-muted-foreground">Join FoodHub today</p>
         </div>
 
@@ -85,32 +96,51 @@ export default function RegisterPage() {
         )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          
           {/* Name Field */}
           <div className="space-y-2">
             <Label htmlFor="name">Full Name</Label>
             <Input id="name" placeholder="John Doe" {...register("name")} />
-            {errors.name && <p className="text-red-500 text-xs">{errors.name.message}</p>}
+            {errors.name && (
+              <p className="text-red-500 text-xs">{errors.name.message}</p>
+            )}
           </div>
 
           {/* Email Field */}
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" placeholder="name@example.com" {...register("email")} />
-            {errors.email && <p className="text-red-500 text-xs">{errors.email.message}</p>}
+            <Input
+              id="email"
+              type="email"
+              placeholder="name@example.com"
+              {...register("email")}
+            />
+            {errors.email && (
+              <p className="text-red-500 text-xs">{errors.email.message}</p>
+            )}
           </div>
 
           {/* Password Field */}
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" placeholder="••••••••" {...register("password")} />
-            {errors.password && <p className="text-red-500 text-xs">{errors.password.message}</p>}
+            <Input
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              {...register("password")}
+            />
+            {errors.password && (
+              <p className="text-red-500 text-xs">{errors.password.message}</p>
+            )}
           </div>
 
           {/* Role Selector (Manual Integration with Shadcn Select) */}
           <div className="space-y-2">
             <Label>I want to...</Label>
-            <Select onValueChange={(val) => setValue("role", val as "CUSTOMER" | "PROVIDER")}>
+            <Select
+              onValueChange={(val) =>
+                setValue("role", val as "CUSTOMER" | "PROVIDER")
+              }
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select Account Type" />
               </SelectTrigger>
@@ -122,14 +152,21 @@ export default function RegisterPage() {
             <input type="hidden" {...register("role")} />
           </div>
 
-          <Button type="submit" className="w-full font-bold mt-4" disabled={isLoading}>
+          <Button
+            type="submit"
+            className="w-full font-bold mt-4"
+            disabled={isLoading}
+          >
             {isLoading ? "Creating Account..." : "Sign Up"}
           </Button>
         </form>
 
         <div className="mt-6 text-center text-sm text-muted-foreground">
           Already have an account?{" "}
-          <Link href="/login" className="text-primary font-bold hover:underline">
+          <Link
+            href="/login"
+            className="text-primary font-bold hover:underline"
+          >
             Login
           </Link>
         </div>

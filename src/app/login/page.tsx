@@ -10,6 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { toast } from "sonner";
 
 // 1. Define the Validation Schema (Must match backend!)
 const loginSchema = z.object({
@@ -40,7 +41,7 @@ export default function LoginPage() {
 
     try {
       // Call your Backend API
-      const response = await fetch("http://localhost:5000/api/login", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -64,11 +65,16 @@ export default function LoginPage() {
           role: result.data.user.role,
         });
       }
-      alert("Login Successful! 🔓");
+      toast.success("Welcome back, Foodie🍗", {
+        description: "You have successfully logged in.",
+        duration: 3000,
+      });
 
       router.push("/dashboard");
     } catch (err: any) {
-      setError(err.message);
+      toast.error("Login Failed", {
+        description: err.message || "Something went wrong.",
+      });
     } finally {
       setIsLoading(false);
     }

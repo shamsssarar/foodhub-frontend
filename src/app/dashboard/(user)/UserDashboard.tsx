@@ -23,7 +23,7 @@ export default function UserDashboard() {
 
       const userId = decoded.userId;
       const res = await fetch(
-        `http://localhost:5000/api/orders/user/${userId}`,
+        `${process.env.NEXT_PUBLIC_URL}/api/orders/user/${userId}`,
         {
           headers: {
             Authorization: token,

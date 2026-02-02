@@ -48,7 +48,7 @@ function MenuContent() {
   useEffect(() => {
     const fetchMeals = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/meals");
+        const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/meals`);
         const data = await res.json();
         if (data.success) {
           setMeals(data.data);

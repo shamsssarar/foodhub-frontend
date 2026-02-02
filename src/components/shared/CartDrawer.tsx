@@ -12,6 +12,7 @@ import { ShoppingCart, Trash2 } from "lucide-react";
 import { useCart } from "@/lib/CartContext";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function CartDrawer() {
   const { items, removeItem, totalPrice, clearCart, cartCount } = useCart();
@@ -23,7 +24,14 @@ export default function CartDrawer() {
 
     // 1. Check Login
     if (!token) {
-      alert("Please login to place an order! 🔒");
+      toast.error("Login Required 🔒", {
+        description: "Please sign in to complete your delicious order.",
+        duration: 4000,
+        action: {
+          label: "Login Now",
+          onClick: () => router.push("/login"),
+        },
+      });
       router.push("/login");
       return;
     }
@@ -40,7 +48,7 @@ export default function CartDrawer() {
       };
 
       // 3. Send Request to Your Backend
-      const res = await fetch("http://localhost:5000/api/orders", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/orders`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -53,15 +61,25 @@ export default function CartDrawer() {
       const data = await res.json();
 
       if (data.success) {
-        alert("Order Placed Successfully! 🎉");
-        clearCart(); // Empty the cart
+        clearCart();
+        toast.success("Order Placed Successfully! 🚀", {
+          description: "The kitchen has received your order.",
+          duration: 4000,
+          action: {
+            label: "View Status",
+            onClick: () => router.push("/dashboard"),
+          },
+        });
       } else {
-        console.log(data);
-        alert("Failed: " + data.message);
+        toast.error("Order Failed", {
+          description: data.message || "We couldn't process your order.",
+        });
       }
     } catch (err) {
       console.error(err);
-      alert("Something went wrong connecting to server.");
+      toast.error("Connection Error", {
+        description: "Something went wrong connecting to the server.",
+      });
     } finally {
       setLoading(false);
     }

@@ -55,7 +55,7 @@ export default function ProviderDashboard() {
     try {
       // CHANGED: Now fetching from the "split" endpoint
       const res = await fetch(
-        "http://localhost:5000/api/orders/provider-orders",
+        `${process.env.NEXT_PUBLIC_URL}/api/orders/provider-orders`,
         {
           headers: { Authorization: token },
         },
@@ -83,7 +83,7 @@ export default function ProviderDashboard() {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/api/orders/${orderId}/status`,
+        `${process.env.NEXT_PUBLIC_URL}/api/orders/${orderId}/status`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json", Authorization: token },

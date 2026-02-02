@@ -63,7 +63,7 @@ export default function MyOrdersPage() {
 
         // 3. Use the local userId variable directly in the URL
         const res = await fetch(
-          `http://localhost:5000/api/orders/user/${userId}`,
+          `${process.env.NEXT_PUBLIC_URL}/api/orders/user/${userId}`,
           {
             headers: {
               Authorization: token,

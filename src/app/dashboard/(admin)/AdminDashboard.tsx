@@ -43,14 +43,14 @@ export default function AdminDashboard() {
 
     try {
       // 1. Fetch Users (You need this route in backend!)
-      const userRes = await fetch("http://localhost:5000/api/users", {
+      const userRes = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/users`, {
         headers: { Authorization: token },
       });
       const userData = await userRes.json();
       if (userData.success) setUsers(userData.data);
 
       // 2. Fetch Orders
-      const orderRes = await fetch("http://localhost:5000/api/orders", {
+      const orderRes = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/orders`, {
         headers: { Authorization: token },
       });
       const orderData = await orderRes.json();
@@ -72,7 +72,7 @@ export default function AdminDashboard() {
     if (!confirm("Are you sure you want to delete this user? This cannot be undone.")) return;
     
     const token = localStorage.getItem("accessToken");
-    const res = await fetch(`http://localhost:5000/api/users/${userId}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/users/${userId}`, {
       method: "DELETE",
       headers: { Authorization: token! },
     });
@@ -89,7 +89,7 @@ export default function AdminDashboard() {
     if (!confirm("Delete this order completely?")) return;
 
     const token = localStorage.getItem("accessToken");
-    const res = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/orders/${orderId}`, {
       method: "DELETE",
       headers: { Authorization: token! },
     });
@@ -102,7 +102,7 @@ export default function AdminDashboard() {
 
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
     const token = localStorage.getItem("accessToken");
-    const res = await fetch(`http://localhost:5000/api/orders/${orderId}/status`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/orders/${orderId}/status`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json", Authorization: token! },
       body: JSON.stringify({ status: newStatus }),
