@@ -38,6 +38,7 @@ const CUISINE_TYPES = [
   "Chicken",
   "Beverages",
   "Sushi",
+  "Biriyani",
 ];
 
 export default function RegisterPage() {
@@ -176,14 +177,13 @@ export default function RegisterPage() {
             <input type="hidden" {...register("role")} />
           </div>
 
-          {/* --- CONDITIONAL CUISINE SELECTOR --- */}
-          {/* Only shows if user selected PROVIDER */}
+          {/* 🟢 RESTORED: Dropdown for Cuisine Type */}
           {selectedRole === "PROVIDER" && (
-            <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
-              <Label className="text-orange-600">What do you cook?</Label>
+            <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+              <Label className="text-orange-600">Select your Cuisine</Label>
               <Select onValueChange={(val) => setValue("cuisine", val)}>
                 <SelectTrigger className="border-orange-200 bg-orange-50/50">
-                  <SelectValue placeholder="Select Cuisine Category" />
+                  <SelectValue placeholder="Select Category" />
                 </SelectTrigger>
                 <SelectContent>
                   {CUISINE_TYPES.map((type) => (
