@@ -411,33 +411,44 @@ export default function AdminDashboard() {
 
                       {/* 🟢 NEW: SHOW REQUESTED CUISINE */}
                       <TableCell>
-                        {u.role === "PROVIDER" && (
-                          <div className="flex flex-col gap-1">
-                            {/* Show Current Status */}
-                            <Badge
-                              variant={
-                                u.providerProfile?.status === "APPROVED"
-                                  ? "default"
-                                  : "destructive"
-                              }
-                            >
-                              {u.providerProfile?.status || "PENDING"}
-                            </Badge>
+                        {u.role === "PROVIDER" ? (
+                          <div className="flex flex-col gap-2">
+                            {/* 1. Show the Requested Cuisine Name */}
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-bold text-slate-700">
+                                {u.providerProfile?.cuisineType ||
+                                  "No Type Selected"}
+                              </span>
+                            </div>
 
-                            {/* Show Approve Button only if PENDING */}
-                            {u.providerProfile?.status === "PENDING" && (
-                              <Button
-                                size="sm"
-                                className="h-6 text-xs bg-green-600 hover:bg-green-700 text-white"
-                                onClick={() => handleApproveProvider(u.id)}
+                            {/* 2. Show Status Badge */}
+                            <div className="flex items-center gap-2">
+                              <Badge
+                                variant={
+                                  u.providerProfile?.status === "APPROVED"
+                                    ? "default"
+                                    : "destructive"
+                                }
                               >
-                                Approve Now
-                              </Button>
-                            )}
+                                {u.providerProfile?.status || "PENDING"}
+                              </Badge>
+
+                              {/* 3. Show Approve Button (Only if Pending) */}
+                              {u.providerProfile?.status === "PENDING" && (
+                                <Button
+                                  size="sm"
+                                  className="h-6 text-xs bg-green-600 hover:bg-green-700 text-white"
+                                  onClick={() => handleApproveProvider(u.id)}
+                                >
+                                  Approve
+                                </Button>
+                              )}
+                            </div>
                           </div>
+                        ) : (
+                          <span className="text-slate-400 text-xs">-</span>
                         )}
                       </TableCell>
-
                       <TableCell className="text-right">
                         <Button
                           variant="ghost"
