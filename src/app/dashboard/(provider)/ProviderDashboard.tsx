@@ -17,6 +17,11 @@ import Navbar from "@/components/shared/Navbar";
 import { useAuth } from "@/context/AuthContext";
 import Loading from "@/app/loading";
 
+interface Review {
+  rating: number;
+  comment: string;
+  userId: string;
+}
 // Define the shape of the new "Split Order" data
 interface OrderItem {
   id: string;
@@ -26,12 +31,14 @@ interface OrderItem {
     name: string;
     price: number;
     category: { name: string };
+    reviews?: Review[];
   };
 }
 
 interface ProviderOrder {
   orderId: string;
   customerName: string;
+  userId: string;
   status: string;
   createdAt: string;
   totalRevenue: number;
@@ -285,14 +292,53 @@ export default function ProviderDashboard() {
 
                           {/* NEW: List the specific items for this provider */}
                           <div className="mt-3 text-sm text-gray-600 bg-gray-50 p-2 rounded">
-                            {order.items.map((item) => (
-                              <div key={item.id} className="flex gap-2">
-                                <span className="font-bold">
-                                  {item.quantity}x
-                                </span>
-                                <span>{item.meal.name}</span>
-                              </div>
-                            ))}
+                            {order.items.map((item) => {
+                              const review =
+                                item.meal.reviews && item.meal.reviews[0];
+                              return (
+                                <div
+                                  key={item.id}
+                                  className="mb-3 border-b pb-3 last:border-0"
+                                >
+                                  <div className="flex justify-between items-start">
+                                    <div className="flex gap-2">
+                                      <span className="font-bold">
+                                        {item.quantity}x
+                                      </span>
+                                      <span>{item.meal.name}</span>
+                                    </div>
+                                    <span className="font-bold text-gray-600">
+                                      ${item.meal.price}
+                                    </span>
+                                  </div>
+
+                                  {review && (
+                                    <div className="mt-2 bg-yellow-50 border border-yellow-200 p-3 rounded-lg text-sm relative">
+                                      <div className="absolute -top-2 left-4 bg-yellow-100 text-yellow-700 text-[10px] font-bold px-2 rounded-full uppercase tracking-wider">
+                                        Customer Review
+                                      </div>
+                                      <div className="flex items-center gap-1 text-yellow-500 mb-1 mt-1">
+                                        {/* Render Stars */}
+                                        {Array.from({
+                                          length: review.rating,
+                                        }).map((_, i) => (
+                                          <svg
+                                            key={i}
+                                            className="w-4 h-4 fill-current"
+                                            viewBox="0 0 24 24"
+                                          >
+                                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                          </svg>
+                                        ))}
+                                      </div>
+                                      <p className="text-gray-700 italic break-all whitespace-pre-wrap">
+                                        "{review.comment}"
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
 

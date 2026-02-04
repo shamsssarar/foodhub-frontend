@@ -12,6 +12,7 @@ import { error } from "console";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ChefHat, LogOut, UserPlus, Clock, CheckCircle } from "lucide-react";
+import ReviewModal from "@/components/shared/ReviewModal";
 
 interface OrderItem {
   id: string;
@@ -29,6 +30,10 @@ interface Order {
   totalPrice: number;
   createdAt: string;
   orderItems: OrderItem[];
+  reviews?: {
+    mealId: string;
+    rating: number;
+  }[];
 }
 
 export default function MyOrdersPage() {
@@ -38,52 +43,51 @@ export default function MyOrdersPage() {
   const router = useRouter();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  useEffect(() => {
-    const fetchOrders = async () => {
-      const token = localStorage.getItem("accessToken");
-      const storedRole = localStorage.getItem("userRole");
-      if (!token) {
-        window.location.replace("/login");
+const fetchOrders = async () => {
+    const token = localStorage.getItem("accessToken");
+    const storedRole = localStorage.getItem("userRole");
+
+    if (!token) {
+      window.location.replace("/login");
+      return;
+    }
+    
+    if (storedRole) setUserRole(storedRole);
+
+    try {
+      const decoded: any = jwtDecode(token);
+      const userId = decoded.userId;
+
+      if (!userId) {
+        console.error("User ID not found in token");
         return;
       }
-      if (token) {
-        if (storedRole) setUserRole(storedRole);
-      }
-      try {
-        const decoded: any = jwtDecode(token);
 
-        const userId = decoded.userId;
+      // setLoading(true); // Optional: be careful with loading state on re-fetches to avoid flickering
 
-        if (!userId) {
-          console.error("User ID not found in token");
-          return;
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_URL}/api/orders/user/${userId}`,
+        {
+          headers: { Authorization: token },
         }
+      );
 
-        setLoading(true);
-
-        // 3. Use the local userId variable directly in the URL
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_URL}/api/orders/user/${userId}`,
-          {
-            headers: {
-              Authorization: token,
-            },
-          },
-        );
-
-        const data = await res.json();
-        if (data.success) {
-          setOrders(data.data);
-        }
-      } catch (err) {
-        console.error("Fetch error:", err);
-      } finally {
-        setLoading(false);
+      const data = await res.json();
+      if (data.success) {
+        setOrders(data.data);
       }
-    };
+    } catch (err) {
+      console.error("Fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  // 🟢 2. CALL IT HERE (On Page Load)
+  useEffect(() => {
     fetchOrders();
   }, []);
+
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -230,59 +234,82 @@ export default function MyOrdersPage() {
 
                 <CardContent className="pt-6">
                   <div className="space-y-4">
-                    {order.orderItems.map((item: any) => (
-                      <div
-                        key={item.id}
-                        className="flex justify-between items-center bg-white p-3 rounded-lg border border-gray-100"
-                      >
-                        <div className="flex items-center gap-4">
-                          {/* Item Image */}
-                          <div className="h-14 w-14 bg-gray-100 rounded-md overflow-hidden relative">
-                            <img
-                              src={item.meal?.imageUrl || "/placeholder.png"}
-                              alt={item.meal?.name}
-                              className="object-cover h-full w-full"
-                            />
-                          </div>
+                    {order.orderItems.map((item: any) => {
+                      const hasReviewed = order.reviews?.some(
+                        (r: any) => r.mealId === item.meal.id,
+                      );
+                      return (
+                        <div
+                          key={item.id}
+                          className="flex justify-between items-center bg-white p-3 rounded-lg border border-gray-100"
+                        >
+                          <div className="flex items-center gap-4">
+                            {/* Item Image */}
+                            <div className="h-14 w-14 bg-gray-100 rounded-md overflow-hidden relative">
+                              <img
+                                src={item.meal?.imageUrl || "/placeholder.png"}
+                                alt={item.meal?.name}
+                                className="object-cover h-full w-full"
+                              />
+                            </div>
 
-                          {/* Item Name & Status */}
-                          <div>
-                            <p className="font-bold text-gray-800">
-                              {item.meal?.name}
-                            </p>
+                            {/* Item Name & Status */}
+                            <div>
+                              <p className="font-bold text-gray-800">
+                                {item.meal?.name}
+                              </p>
 
-                            {/* --- NEW STATUS BADGE FOR EACH ITEM --- */}
-                            <div className="mt-1">
-                              {item.status === "PENDING" && (
-                                <span className="inline-flex items-center text-xs font-medium text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full border border-orange-100">
-                                  <Clock className="w-3 h-3 mr-1" /> Pending
-                                </span>
-                              )}
-                              {item.status === "IN_PROGRESS" && (
-                                <span className="inline-flex items-center text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">
-                                  <ChefHat className="w-3 h-3 mr-1" /> Cooking
-                                </span>
-                              )}
-                              {item.status === "DELIVERED" && (
-                                <span className="inline-flex items-center text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100">
-                                  <CheckCircle className="w-3 h-3 mr-1" /> Ready
-                                </span>
-                              )}
+                              {/* --- NEW STATUS BADGE FOR EACH ITEM --- */}
+                              <div className="mt-1">
+                                {item.status === "PENDING" && (
+                                  <span className="inline-flex items-center text-xs font-medium text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full border border-orange-100">
+                                    <Clock className="w-3 h-3 mr-1" /> Pending
+                                  </span>
+                                )}
+                                {item.status === "IN_PROGRESS" && (
+                                  <span className="inline-flex items-center text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">
+                                    <ChefHat className="w-3 h-3 mr-1" /> Cooking
+                                  </span>
+                                )}
+                                {item.status === "DELIVERED" && (
+                                  <span className="inline-flex items-center text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100">
+                                    <CheckCircle className="w-3 h-3 mr-1" />{" "}
+                                    Ready
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
-                        </div>
 
-                        {/* Price & Quantity */}
-                        <div className="text-right">
-                          <p className="text-xs text-muted-foreground">
-                            Qty: {item.quantity}
-                          </p>
-                          <p className="font-bold text-primary">
-                            ${(item.meal.price * item.quantity).toFixed(2)}
-                          </p>
+                          {/* Price & Quantity */}
+                          <div className="text-right flex flex-col items-end gap-2">
+                            <div>
+                              <p className="text-xs text-muted-foreground">
+                                Qty: {item.quantity}
+                              </p>
+                              <p className="font-bold text-primary">
+                                ${(item.meal.price * item.quantity).toFixed(2)}
+                              </p>
+                            </div>
+
+                            {/* 🟢 NEW: Review Button (Only appears if Delivered) */}
+                            {item.status === "DELIVERED" &&
+                              (hasReviewed ? (
+                                <span className="text-xs font-bold text-orange-500 bg-orange-50 px-2 py-1 rounded-full border border-orange-100">
+                                  ★ Review Submitted
+                                </span>
+                              ) : (
+                                <ReviewModal
+                                  mealId={item.meal.id}
+                                  mealName={item.meal.name}
+                                  orderId={order.id}
+                                  onReviewSuccess={fetchOrders}
+                                />
+                              ))}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
 
                   <Separator className="my-4" />
