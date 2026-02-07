@@ -16,6 +16,7 @@ import {
 import Navbar from "@/components/shared/Navbar";
 import { useAuth } from "@/context/AuthContext";
 import Loading from "@/app/loading";
+import AddMealToOrderModal from "@/components/shared/AddMealToOrderMeal";
 
 interface Review {
   rating: number;
@@ -168,9 +169,6 @@ export default function ProviderDashboard() {
                 Manage your restaurant operations and track sales.
               </p>
             </div>
-            <Button className="bg-primary hover:bg-orange-600 shadow-lg shadow-orange-200">
-              <Utensils className="mr-2 h-4 w-4" /> Add New Meal
-            </Button>
           </div>
 
           {/* QUICK STATS GRID */}
@@ -234,9 +232,9 @@ export default function ProviderDashboard() {
           </div>
 
           {/* RECENT ORDERS LIST */}
-          <h2 className="text-xl font-bold mb-4 text-slate-800">
-            Recent Orders
-          </h2>
+          <div className="flex items-center justify-between mb-4 mt-8">
+            <h2 className="text-xl font-bold text-slate-800">Recent Orders</h2>
+          </div>
           <div className="space-y-4">
             {orders.length === 0 ? (
               <div className="text-center py-10 bg-white rounded-xl border border-dashed">
@@ -247,6 +245,9 @@ export default function ProviderDashboard() {
             ) : (
               orders.map((order) => {
                 const currentStatus = order.items[0]?.status || "PENDING";
+                const canEdit =
+                  currentStatus === "PENDING" ||
+                  currentStatus === "IN_PROGRESS";
                 return (
                   <Card
                     key={order.orderId}
@@ -339,6 +340,12 @@ export default function ProviderDashboard() {
                                 </div>
                               );
                             })}
+                            {canEdit && (
+                              <AddMealToOrderModal
+                                orderId={order.orderId}
+                                onSuccess={fetchOrders} // This refreshes the dashboard instantly
+                              />
+                            )}
                           </div>
                         </div>
 

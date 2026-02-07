@@ -71,7 +71,7 @@ export default function ReviewModal({
       <DialogTrigger asChild>
         <Button
           size="sm"
-          className="text-xs font-bold cursor-pointer rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white border-0 shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-orange-200 active:scale-95 hover:-translate-y-0.5"
+          className="text-xs font-bold cursor-pointer rounded-full bg-linear-to-r from-orange-500 to-red-500 text-white border-0 shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-orange-200 active:scale-95 hover:-translate-y-0.5"
         >
           <span className="mr-1">⭐</span> Write Review
         </Button>
