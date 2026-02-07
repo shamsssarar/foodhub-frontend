@@ -33,7 +33,7 @@ export default function AddMealToOrderModal({
       const fetchMenu = async () => {
         const token = localStorage.getItem("accessToken");
         // Ensure you have an endpoint that gets provider's own meals
-        const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/meals`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/meals/my-meals`, {
           headers: { Authorization: token! },
         });
         const data = await res.json();

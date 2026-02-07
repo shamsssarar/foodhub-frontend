@@ -12,11 +12,13 @@ import {
   DollarSign,
   ShoppingBag,
   Clock,
+  MinusCircle,
 } from "lucide-react";
 import Navbar from "@/components/shared/Navbar";
 import { useAuth } from "@/context/AuthContext";
 import Loading from "@/app/loading";
 import AddMealToOrderModal from "@/components/shared/AddMealToOrderMeal";
+import { toast } from "sonner";
 
 interface Review {
   rating: number;
@@ -29,6 +31,7 @@ interface OrderItem {
   quantity: number;
   status: string;
   meal: {
+    id: string;
     name: string;
     price: number;
     category: { name: string };
@@ -124,6 +127,33 @@ export default function ProviderDashboard() {
       }
     } catch (error) {
       console.error("Error updating status:", error);
+    }
+  };
+
+  const handleRemoveItem = async (orderId: string, mealId: string) => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_URL}/api/orders/remove-item`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token!,
+          },
+          body: JSON.stringify({ orderId, mealId }),
+        },
+      );
+
+      const data = await res.json();
+      if (data.success) {
+        toast.success("Item removed");
+        fetchOrders(); // 🟢 Refresh dashboard
+      } else {
+        toast.error(data.message);
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -303,6 +333,20 @@ export default function ProviderDashboard() {
                                 >
                                   <div className="flex justify-between items-start">
                                     <div className="flex gap-2">
+                                      {canEdit && (
+                                        <button
+                                          onClick={() =>
+                                            handleRemoveItem(
+                                              order.orderId,
+                                              item.meal.id,
+                                            )
+                                          }
+                                          className="text-red-500 hover:bg-red-50 p-1 rounded-full transition"
+                                          title="Remove 1 item"
+                                        >
+                                          <MinusCircle className="w-4 h-4" />
+                                        </button>
+                                      )}
                                       <span className="font-bold">
                                         {item.quantity}x
                                       </span>

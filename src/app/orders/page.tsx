@@ -43,7 +43,7 @@ export default function MyOrdersPage() {
   const router = useRouter();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-const fetchOrders = async () => {
+  const fetchOrders = async () => {
     const token = localStorage.getItem("accessToken");
     const storedRole = localStorage.getItem("userRole");
 
@@ -51,7 +51,7 @@ const fetchOrders = async () => {
       window.location.replace("/login");
       return;
     }
-    
+
     if (storedRole) setUserRole(storedRole);
 
     try {
@@ -69,7 +69,7 @@ const fetchOrders = async () => {
         `${process.env.NEXT_PUBLIC_URL}/api/orders/user/${userId}`,
         {
           headers: { Authorization: token },
-        }
+        },
       );
 
       const data = await res.json();
@@ -87,7 +87,6 @@ const fetchOrders = async () => {
   useEffect(() => {
     fetchOrders();
   }, []);
-
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -206,123 +205,132 @@ const fetchOrders = async () => {
           </>
         ) : (
           <div className="space-y-6">
-            {orders.map((order) => (
-              <Card
-                key={order.id}
-                className="border-none shadow-sm hover:shadow-md transition-shadow"
-              >
-                <CardHeader className="bg-white border-b pb-4">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="text-xs text-muted-foreground">
-                        Order ID: {order.id}
-                      </p>
-                      <p className="text-sm font-bold text-gray-500">
-                        {new Date(order.createdAt).toLocaleDateString()} at{" "}
-                        {new Date(order.createdAt).toLocaleTimeString()}
-                      </p>
+            {orders.map((order) => {
+              const calculatedTotal = order.orderItems.reduce((sum, item) => {
+                return sum + item.price * item.quantity;
+              }, 0);
+              return (
+                <Card
+                  key={order.id}
+                  className="border-none shadow-sm hover:shadow-md transition-shadow"
+                >
+                  <CardHeader className="bg-white border-b pb-4">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="text-xs text-muted-foreground">
+                          Order ID: {order.id}
+                        </p>
+                        <p className="text-sm font-bold text-gray-500">
+                          {new Date(order.createdAt).toLocaleDateString()} at{" "}
+                          {new Date(order.createdAt).toLocaleTimeString()}
+                        </p>
+                      </div>
+                      <Badge
+                        variant={
+                          order.status === "PENDING" ? "secondary" : "default"
+                        }
+                      >
+                        {order.status}
+                      </Badge>
                     </div>
-                    <Badge
-                      variant={
-                        order.status === "PENDING" ? "secondary" : "default"
-                      }
-                    >
-                      {order.status}
-                    </Badge>
-                  </div>
-                </CardHeader>
+                  </CardHeader>
 
-                <CardContent className="pt-6">
-                  <div className="space-y-4">
-                    {order.orderItems.map((item: any) => {
-                      const hasReviewed = order.reviews?.some(
-                        (r: any) => r.mealId === item.meal.id,
-                      );
-                      return (
-                        <div
-                          key={item.id}
-                          className="flex justify-between items-center bg-white p-3 rounded-lg border border-gray-100"
-                        >
-                          <div className="flex items-center gap-4">
-                            {/* Item Image */}
-                            <div className="h-14 w-14 bg-gray-100 rounded-md overflow-hidden relative">
-                              <img
-                                src={item.meal?.imageUrl || "/placeholder.png"}
-                                alt={item.meal?.name}
-                                className="object-cover h-full w-full"
-                              />
-                            </div>
+                  <CardContent className="pt-6">
+                    <div className="space-y-4">
+                      {order.orderItems.map((item: any) => {
+                        const hasReviewed = order.reviews?.some(
+                          (r: any) => r.mealId === item.meal.id,
+                        );
+                        return (
+                          <div
+                            key={item.id}
+                            className="flex justify-between items-center bg-white p-3 rounded-lg border border-gray-100"
+                          >
+                            <div className="flex items-center gap-4">
+                              {/* Item Image */}
+                              <div className="h-14 w-14 bg-gray-100 rounded-md overflow-hidden relative">
+                                <img
+                                  src={
+                                    item.meal?.imageUrl || "/placeholder.png"
+                                  }
+                                  alt={item.meal?.name}
+                                  className="object-cover h-full w-full"
+                                />
+                              </div>
 
-                            {/* Item Name & Status */}
-                            <div>
-                              <p className="font-bold text-gray-800">
-                                {item.meal?.name}
-                              </p>
+                              {/* Item Name & Status */}
+                              <div>
+                                <p className="font-bold text-gray-800">
+                                  {item.meal?.name}
+                                </p>
 
-                              {/* --- NEW STATUS BADGE FOR EACH ITEM --- */}
-                              <div className="mt-1">
-                                {item.status === "PENDING" && (
-                                  <span className="inline-flex items-center text-xs font-medium text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full border border-orange-100">
-                                    <Clock className="w-3 h-3 mr-1" /> Pending
-                                  </span>
-                                )}
-                                {item.status === "IN_PROGRESS" && (
-                                  <span className="inline-flex items-center text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">
-                                    <ChefHat className="w-3 h-3 mr-1" /> Cooking
-                                  </span>
-                                )}
-                                {item.status === "DELIVERED" && (
-                                  <span className="inline-flex items-center text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100">
-                                    <CheckCircle className="w-3 h-3 mr-1" />{" "}
-                                    Ready
-                                  </span>
-                                )}
+                                {/* --- NEW STATUS BADGE FOR EACH ITEM --- */}
+                                <div className="mt-1">
+                                  {item.status === "PENDING" && (
+                                    <span className="inline-flex items-center text-xs font-medium text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full border border-orange-100">
+                                      <Clock className="w-3 h-3 mr-1" /> Pending
+                                    </span>
+                                  )}
+                                  {item.status === "IN_PROGRESS" && (
+                                    <span className="inline-flex items-center text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">
+                                      <ChefHat className="w-3 h-3 mr-1" />{" "}
+                                      Cooking
+                                    </span>
+                                  )}
+                                  {item.status === "DELIVERED" && (
+                                    <span className="inline-flex items-center text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100">
+                                      <CheckCircle className="w-3 h-3 mr-1" />{" "}
+                                      Ready
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             </div>
-                          </div>
 
-                          {/* Price & Quantity */}
-                          <div className="text-right flex flex-col items-end gap-2">
-                            <div>
-                              <p className="text-xs text-muted-foreground">
-                                Qty: {item.quantity}
-                              </p>
-                              <p className="font-bold text-primary">
-                                ${(item.meal.price * item.quantity).toFixed(2)}
-                              </p>
+                            {/* Price & Quantity */}
+                            <div className="text-right flex flex-col items-end gap-2">
+                              <div>
+                                <p className="text-xs text-muted-foreground">
+                                  Qty: {item.quantity}
+                                </p>
+                                <p className="font-bold text-primary">
+                                  $
+                                  {(item.meal.price * item.quantity).toFixed(2)}
+                                </p>
+                              </div>
+
+                              {/* 🟢 NEW: Review Button (Only appears if Delivered) */}
+                              {item.status === "DELIVERED" &&
+                                (hasReviewed ? (
+                                  <span className="text-xs font-bold text-orange-500 bg-orange-50 px-2 py-1 rounded-full border border-orange-100">
+                                    ★ Review Submitted
+                                  </span>
+                                ) : (
+                                  <ReviewModal
+                                    mealId={item.meal.id}
+                                    mealName={item.meal.name}
+                                    orderId={order.id}
+                                    onReviewSuccess={fetchOrders}
+                                  />
+                                ))}
                             </div>
-
-                            {/* 🟢 NEW: Review Button (Only appears if Delivered) */}
-                            {item.status === "DELIVERED" &&
-                              (hasReviewed ? (
-                                <span className="text-xs font-bold text-orange-500 bg-orange-50 px-2 py-1 rounded-full border border-orange-100">
-                                  ★ Review Submitted
-                                </span>
-                              ) : (
-                                <ReviewModal
-                                  mealId={item.meal.id}
-                                  mealName={item.meal.name}
-                                  orderId={order.id}
-                                  onReviewSuccess={fetchOrders}
-                                />
-                              ))}
                           </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                        );
+                      })}
+                    </div>
 
-                  <Separator className="my-4" />
+                    <Separator className="my-4" />
 
-                  <div className="flex justify-between items-center">
-                    <span className="font-bold text-lg">Total Paid</span>
-                    <span className="font-bold text-xl text-primary">
-                      ${order.totalPrice.toFixed(2)}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-lg">Total Paid</span>
+                      <span className="font-bold text-xl text-primary">
+                        ${calculatedTotal.toFixed(2)}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
       </main>
