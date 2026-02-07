@@ -51,7 +51,7 @@ export default function AddMealPage() {
 
       if (data.success) {
         toast.success("Meal created successfully!");
-        router.push("/dashboard/provider"); // Go back to dashboard
+        router.push("/meals"); // Go back to dashboard
       } else {
         toast.error(data.message || "Failed to create meal");
       }

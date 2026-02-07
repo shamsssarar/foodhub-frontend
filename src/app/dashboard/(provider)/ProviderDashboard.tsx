@@ -13,6 +13,7 @@ import {
   ShoppingBag,
   Clock,
   MinusCircle,
+  Trash2,
 } from "lucide-react";
 import Navbar from "@/components/shared/Navbar";
 import { useAuth } from "@/context/AuthContext";
@@ -198,6 +199,22 @@ export default function ProviderDashboard() {
               <p className="text-slate-500">
                 Manage your restaurant operations and track sales.
               </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={() => router.push("/dashboard/add-meal")}
+                className="bg-primary hover:bg-orange-600 shadow-lg shadow-orange-200 cursor-pointer"
+              >
+                <Utensils className="mr-2 h-4 w-4" /> Add New Meal
+              </Button>
+
+              <Button
+                onClick={() => router.push("/dashboard/remove-meal")}
+                variant="destructive"
+                className="bg-primary hover:bg-orange-600 shadow-lg shadow-orange-200 cursor-pointer"
+              >
+                <Trash2 className="mr-2 h-4 w-4" /> Remove Meal
+              </Button>
             </div>
           </div>
 
