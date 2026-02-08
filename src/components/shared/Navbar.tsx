@@ -206,7 +206,7 @@ export default function Navbar() {
         {/* RIGHT: User & Cart */}
         <div className="flex items-center gap-4">
           <div className={isSolid ? "text-black" : "text-white"}>
-            <CartDrawer />
+            <CartDrawer  />
           </div>
 
           {userName ? (
@@ -252,7 +252,7 @@ export default function Navbar() {
                   variant={isSolid ? "default" : "secondary"}
                   className={
                     !isSolid
-                      ? "bg-transparent text-primary hover:bg-gray-100"
+                      ? "bg-transparent text-primary hover:bg-gray-100 cursor-pointer"
                       : ""
                   }
                 >

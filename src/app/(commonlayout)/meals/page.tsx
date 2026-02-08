@@ -8,18 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Search, Utensils } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/lib/CartContext";
-import Loading from "../loading";
+import Loading from "../../loading";
 import { cn } from "@/lib/utils";
 import { useSearchParams } from "next/navigation"; // <--- 1. Import this
-
-interface Meal {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  category: { name: string };
-  imageUrl: string | null;
-}
+import { toast } from "sonner";
+import { DEFAULT_MEALS, Meal } from "./constants";
 
 function MenuContent() {
   const [meals, setMeals] = useState<Meal[]>([]);
@@ -45,16 +38,37 @@ function MenuContent() {
     }
   }, [urlCategory, urlSearch]);
 
-  useEffect(() => {
+useEffect(() => {
     const fetchMeals = async () => {
+      setLoading(true);
+
+      // 🟢 1. Check if user is logged in
+      const token = localStorage.getItem("accessToken");
+
+      // 🛑 2. IF VISITOR (No Token): FORCE DUMMY DATA
+
+      if (!token) {
+        setMeals(DEFAULT_MEALS);
+        setLoading(false);
+        return; 
+      }
+
+      // 🟢 3. IF LOGGED IN: FETCH REAL DATA
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/meals`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/meals`, {
+           cache: "no-store" 
+        });
         const data = await res.json();
-        if (data.success) {
+        
+        if (data.success && data.data.length > 0) {
+          // Show their real database meals
           setMeals(data.data);
+        } else {
+          // If they are logged in but haven't added meals yet, show defaults
+          setMeals(DEFAULT_MEALS);
         }
       } catch (error) {
-        console.error("Failed to fetch meals:", error);
+        setMeals(DEFAULT_MEALS); 
       } finally {
         setLoading(false);
       }
@@ -107,7 +121,7 @@ function MenuContent() {
 
         {/* CATEGORY TABS */}
         {!loading && (
-          <div className="flex gap-3 overflow-x-auto pb-6 mb-4 scrollbar-hide">
+          <div className="flex gap-3 overflow-x-auto pb-6 mb-4 scrollbar-hide p-2">
             {categories.map((cat) => (
               <Button
                 key={cat}
@@ -185,7 +199,7 @@ function MenuContent() {
                   {meal.description || "No description available."}
                 </p>
                 <Button
-                  className="w-full font-bold shadow-md shadow-orange-100 active:scale-95 transition-transform"
+                  className="w-full font-bold shadow-md shadow-orange-100 active:scale-95 transition-transform hover:opacity-90 cursor-pointer"
                   onClick={() => {
                     addItem({
                       id: meal.id,
@@ -194,7 +208,9 @@ function MenuContent() {
                       quantity: 1,
                       imageUrl: meal.imageUrl || "",
                     });
-                    alert(`${meal.name} added to cart! 🛒`);
+                    toast.success(`${meal.name} added to cart! 🛒`, {
+                      description: "Item is ready for checkout",
+                    });
                   }}
                 >
                   Add to Cart

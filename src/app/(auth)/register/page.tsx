@@ -17,6 +17,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { ArrowLeft } from "lucide-react";
 
 // 1. Validation Schema - Added 'cuisine'
 const registerSchema = z.object({
@@ -105,6 +106,17 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-orange-50 px-4">
+      <div className="absolute top-6 left-6 md:top-10 md:left-10">
+        <Link href="/">
+          <Button
+            variant="ghost"
+            className="hover:bg-orange-100 text-orange-800 gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Home
+          </Button>
+        </Link>
+      </div>
       <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl border border-orange-100">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-primary mb-2">
@@ -179,20 +191,18 @@ export default function RegisterPage() {
 
           {/* 🟢 RESTORED: Dropdown for Cuisine Type */}
           {selectedRole === "PROVIDER" && (
-            <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-              <Label className="text-orange-600">Select your Cuisine</Label>
-              <Select onValueChange={(val) => setValue("cuisine", val)}>
-                <SelectTrigger className="border-orange-200 bg-orange-50/50">
-                  <SelectValue placeholder="Select Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CUISINE_TYPES.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="space-y-2">
+              <Label htmlFor="cuisine">Cuisine Type Request</Label>
+              <Input
+                id="cuisine"
+                placeholder="What do you want to sell? (e.g. Tacos, Sushi)"
+                {...register("cuisine", {
+                  required: "Cuisine request is required",
+                })}
+              />
+              <p className="text-xs text-slate-500">
+                Admin will review this request and assign you a category.
+              </p>
             </div>
           )}
 

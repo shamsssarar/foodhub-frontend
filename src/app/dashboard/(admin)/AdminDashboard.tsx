@@ -25,12 +25,15 @@ import {
   CheckCircle,
   Truck,
   XCircle,
+  Layers,
 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function AdminDashboard() {
   const router = useRouter();
   const [users, setUsers] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   // --- DATA FETCHING ---
@@ -58,6 +61,11 @@ export default function AdminDashboard() {
       );
       const orderData = await orderRes.json();
       if (orderData.success) setOrders(orderData.data);
+      const catRes = await fetch(
+        `${process.env.NEXT_PUBLIC_URL}/api/categories`,
+      );
+      const catData = await catRes.json();
+      if (catData.success) setCategories(catData.data);
     } catch (error) {
       console.error("Failed to fetch admin data", error);
     } finally {
@@ -127,63 +135,59 @@ export default function AdminDashboard() {
     if (res.ok) fetchData();
   };
 
-  // 🟢 NEW: Function to handle Admin assigning a category
-  const handleAssignCategory = async (
-    userId: string,
-    currentRequest: string,
-  ) => {
-    // Simple prompt for now (Fastest solution)
-    const newCategory = prompt("Approve & Assign Category:", currentRequest);
+  // const handleAssignCategory = async (
+  //   userId: string,
+  //   requestedCuisine: string,
+  // ) => {
+  //   // 1. Show available categories in the prompt
+  //   const catList = categories.map((c) => `• ${c.name}`).join("\n");
 
-    if (!newCategory) return; // Cancelled
+  //   const selectedName = prompt(
+  //     `User Requested: "${requestedCuisine}"\n\nType the EXACT Category Name to assign:\n${catList}`,
+  //   );
 
-    // Call API to update the provider's official cuisine/category
-    // You might need to create this route or use a generic update
-    const token = localStorage.getItem("accessToken");
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_URL}/api/users/${userId}/assign-category`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: token!,
-          },
-          body: JSON.stringify({ cuisineType: newCategory }),
-        },
-      );
+  //   if (!selectedName) return; // Cancelled
 
-      if (res.ok) {
-        alert("Category Assigned!");
-        fetchData(); // Refresh table
-      }
-    } catch (err) {
-      alert("Failed to assign");
-    }
-  };
+  //   // 2. Find the Category ID based on name
+  //   const category = categories.find(
+  //     (c) => c.name.toLowerCase() === selectedName.trim().toLowerCase(),
+  //   );
 
-  const handleApproveProvider = async (userId: string) => {
-    const token = localStorage.getItem("accessToken");
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_URL}/api/users/${userId}/status`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: token!,
-          },
-          body: JSON.stringify({ status: "APPROVED" }),
-        },
-      );
-      if (res.ok) {
-        alert("Provider Approved!");
-        fetchData(); // Refresh list
-      }
-    } catch (err) {
-      alert("Failed to approve");
-    }
-  };
+  //   if (!category) {
+  //     toast.error("Category not found! Check spelling or create it first.");
+  //     return;
+  //   }
+
+  //   // 3. Send to Backend
+  //   const token = localStorage.getItem("accessToken");
+  //   try {
+  //     const res = await fetch(
+  //       `${process.env.NEXT_PUBLIC_URL}/api/users/${userId}/assign-category`,
+  //       {
+  //         method: "PATCH",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //           Authorization: token!,
+  //         },
+  //         body: JSON.stringify({ categoryId: category.id }),
+  //       },
+  //     );
+
+  //     const data = await res.json();
+
+  //     if (data.success) {
+  //       toast.success(`Assigned to ${category.name} & Approved! 🚀`);
+  //       fetchData(); // Refresh list
+  //     } else {
+  //       toast.error(data.message || "Failed to assign");
+  //     }
+  //   } catch (err) {
+  //     toast.error("Something went wrong");
+  //   }
+  // };
+
+
+
 
   // --- CALCULATIONS ---
   const totalRevenue = orders.reduce((acc, curr) => acc + curr.totalPrice, 0);
@@ -255,6 +259,31 @@ export default function AdminDashboard() {
               </div>
             </CardContent>
           </Card>
+        </div>
+
+        <div className="mb-10">
+          <h2 className="text-xl font-bold text-slate-800 mb-4">
+            Quick Actions
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* ADD CATEGORY BUTTON */}
+            <Card
+              className="hover:shadow-lg transition-all cursor-pointer border-l-4 border-l-primary group bg-white"
+              onClick={() => router.push("/dashboard/add-category")}
+            >
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-lg font-bold text-slate-800 group-hover:text-primary transition-colors">
+                  Add Category
+                </CardTitle>
+                <Layers className="w-5 h-5 text-slate-400 group-hover:text-primary" />
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-slate-500">
+                  Create new cuisine types for providers.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         {/* MAIN TABS */}
@@ -433,14 +462,14 @@ export default function AdminDashboard() {
                                 {u.providerProfile?.status || "PENDING"}
                               </Badge>
 
-                              {/* 3. Show Approve Button (Only if Pending) */}
+                              {/* 3. Show Assign Button (Only if Pending) */}
                               {u.providerProfile?.status === "PENDING" && (
                                 <Button
                                   size="sm"
-                                  className="h-6 text-xs bg-green-600 hover:bg-green-700 text-white"
-                                  onClick={() => handleApproveProvider(u.id)}
+                                  className="h-7 text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-md"
+                                  onClick={() => router.push(`/dashboard/assign-category/${u.id}`)}
                                 >
-                                  Approve
+                                  Assign Category
                                 </Button>
                               )}
                             </div>

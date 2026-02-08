@@ -68,7 +68,7 @@ export default function LoginPage() {
       }
       toast.success("Welcome back, Foodie🍗", {
         description: "You have successfully logged in.",
-        duration: 3000,
+        duration: 2000,
       });
 
       router.push("/dashboard");

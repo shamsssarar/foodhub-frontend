@@ -89,7 +89,7 @@ export default function CartDrawer() {
     <Sheet>
       {/* THE TRIGGER BUTTON (Visible in Navbar) */}
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
+        <Button variant="ghost" size="icon" className="relative cursor-pointer">
           <ShoppingCart className="h-5 w-5" />
           <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] font-bold text-white flex items-center justify-center">
             {cartCount}
