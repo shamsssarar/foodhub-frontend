@@ -95,7 +95,6 @@ useEffect(() => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50/50">
-      <Navbar />
 
       <main className="flex-1 container mx-auto px-4 py-10">
         <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
@@ -221,7 +220,7 @@ useEffect(() => {
         </div>
       </main>
 
-      <Footer />
+  
     </div>
   );
 }
